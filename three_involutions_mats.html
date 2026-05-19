@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Three Involutions</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: #f7f4ee;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #1a1814;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 12px 40px;
+  touch-action: none;
+}
+
+h1 {
+  font-size: 1.15rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 3px;
+}
+
+.subtitle {
+  font-style: italic;
+  font-size: 0.9rem;
+  color: #6b6356;
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+.intro {
+  width: 100%;
+  max-width: 680px;
+  margin-bottom: 16px;
+  border: 1px solid #c8c0b0;
+  background: #fdfaf4;
+  box-shadow: 3px 3px 0 #c8c0b0;
+}
+.intro-head {
+  background: #ede7f6;
+  border-bottom: 2px solid #5B2D8E;
+  padding: 10px 16px;
+}
+.intro-head h2 {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #5B2D8E;
+  font-weight: 400;
+  margin-bottom: 1px;
+}
+.intro-head p { font-style: italic; font-size: 0.88rem; color: #6b6356; }
+.intro-body {
+  padding: 12px 16px;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: #3a3530;
+}
+.intro-body p { margin-bottom: 8px; }
+.intro-body p:last-child { margin-bottom: 0; }
+
+.svg-wrap {
+  width: 100%;
+  max-width: 680px;
+  border: 1px solid #c8c0b0;
+  background: #fdfaf4;
+  box-shadow: 4px 4px 0 #c8c0b0;
+  touch-action: none;
+  cursor: crosshair;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.svg-wrap svg { display: block; width: 100%; height: auto; }
+
+.readout {
+  display: flex;
+  width: 100%;
+  max-width: 680px;
+  margin-top: 10px;
+  border: 1px solid #c8c0b0;
+  background: #fdfaf4;
+  box-shadow: 2px 2px 0 #c8c0b0;
+}
+.readout-cell {
+  flex: 1;
+  padding: 8px 10px;
+  border-right: 1px solid #c8c0b0;
+  text-align: center;
+}
+.readout-cell:last-child { border-right: none; }
+.r-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b6356;
+  margin-bottom: 2px;
+}
+.r-value { font-family: 'Courier New', monospace; font-size: 0.95rem; }
+.rc { color: #aa3300; }
+.rr { color: #2255aa; }
+.rt { color: #228833; }
+.rx { color: #1a1814; }
+
+.controls {
+  width: 100%;
+  max-width: 680px;
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 6px;
+}
+.btn {
+  padding: 8px 4px;
+  border: 1px solid #c8c0b0;
+  background: #fdfaf4;
+  font-family: Georgia, serif;
+  font-size: 0.82rem;
+  color: #3a3530;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  box-shadow: 2px 2px 0 #c8c0b0;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.btn.on { background: #eee8dc; }
+.dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+.legend {
+  width: 100%;
+  max-width: 680px;
+  margin-top: 8px;
+  padding: 10px 14px;
+  border: 1px solid #c8c0b0;
+  background: #fdfaf4;
+  box-shadow: 2px 2px 0 #c8c0b0;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px 12px;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+.legend-item { display: flex; gap: 7px; align-items: flex-start; }
+.legend-swatch { width: 18px; height: 3px; margin-top: 7px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<h1>Three Involutions</h1>
+<p class="subtitle">Complement &middot; Reciprocal &middot; Third &mdash; acting simultaneously</p>
+
+<div class="intro">
+  <div class="intro-head">
+    <h2>Working note &middot; K. Forseth &middot; May 2026</h2>
+    <p>An interactive diagram for Mats</p>
+  </div>
+  <div class="intro-body">
+    <p>Three order-2 transformations of the anharmonic group acting simultaneously on the projective line. Drag along the horizontal axis to move x.</p>
+    <p><strong style="color:#aa3300">Complement</strong> x&rarr;1&minus;x: red arcs <em>above</em> the axis. Swaps 0&harr;1, fixes &infin;. One axis, compass construction only.</p>
+    <p><strong style="color:#2255aa">Reciprocal</strong> x&rarr;1/x: blue arcs <em>below</em> the axis. Swaps 0&harr;&infin;, fixes 1. One axis, straightedge construction only.</p>
+    <p><strong style="color:#228833">Third involution</strong> x&rarr;x/(x&minus;1): green line <em>crossing to the vertical axis</em>. Fixes 0 and 2. Requires both axes &mdash; its hinge (1,1) is forced by the unit hyperbola xy=1 meeting the diagonal x=y.</p>
+  </div>
+</div>
+
+<div class="svg-wrap" id="svgwrap">
+<svg id="mainsvg" viewBox="0 0 680 440" xmlns="http://www.w3.org/2000/svg" style="touch-action:none;">
+</svg>
+</div>
+
+<div class="readout">
+  <div class="readout-cell">
+    <div class="r-label">x</div>
+    <div class="r-value rx" id="rv-x">drag axis</div>
+  </div>
+  <div class="readout-cell">
+    <div class="r-label">1 &minus; x</div>
+    <div class="r-value rc" id="rv-c">&mdash;</div>
+  </div>
+  <div class="readout-cell">
+    <div class="r-label">1 / x</div>
+    <div class="r-value rr" id="rv-r">&mdash;</div>
+  </div>
+  <div class="readout-cell">
+    <div class="r-label">x / (x&minus;1)</div>
+    <div class="r-value rt" id="rv-t">&mdash;</div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn on" id="b-comp"  onclick="tog('comp',this)">
+    <span class="dot" style="background:#aa3300"></span>Complement
+  </button>
+  <button class="btn on" id="b-recip" onclick="tog('recip',this)">
+    <span class="dot" style="background:#2255aa"></span>Reciprocal
+  </button>
+  <button class="btn on" id="b-third" onclick="tog('third',this)">
+    <span class="dot" style="background:#228833"></span>Third
+  </button>
+  <button class="btn on" id="b-hyp"   onclick="tog('hyp',this)">
+    <span class="dot" style="background:#884488"></span>Hyperbola
+  </button>
+</div>
+
+<div class="legend">
+  <div class="legend-item">
+    <div class="legend-swatch" style="background:#aa3300"></div>
+    <div><strong style="color:#aa3300">Complement</strong><br>
+    x &rarr; 1&minus;x<br>fixed: &frac12;</div>
+  </div>
+  <div class="legend-item">
+    <div class="legend-swatch" style="background:#2255aa"></div>
+    <div><strong style="color:#2255aa">Reciprocal</strong><br>
+    x &rarr; 1/x<br>fixed: &plusmn;1</div>
+  </div>
+  <div class="legend-item">
+    <div class="legend-swatch" style="background:#228833"></div>
+    <div><strong style="color:#228833">Third</strong><br>
+    x &rarr; x/(x&minus;1)<br>fixed: 0, 2</div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const VW = 680, VH = 440;
+  const XMAX = 5.8, YMAX = 4.6;
+  const OX = 90, OY = 368;
+  const SX = (VW - OX - 20) / XMAX;
+  const SY = (OY - 20) / YMAX;
+
+  function tx(x) { return OX + x * SX; }
+  function ty(y) { return OY - y * SY; }
+
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.getElementById('mainsvg');
+
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  function txt(content, attrs, parent) {
+    const e = el('text', attrs, parent);
+    e.textContent = content;
+    return e;
+  }
+
+  function quadPath(x1,y1,cpx,cpy,x2,y2) {
+    return `M${x1.toFixed(1)},${y1.toFixed(1)} Q${cpx.toFixed(1)},${cpy.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}`;
+  }
+
+  let show = { comp:true, recip:true, third:true, hyp:true };
+  let activeX = null;
+
+  window.tog = function(key, btn) {
+    show[key] = !show[key];
+    btn.classList.toggle('on', show[key]);
+    const g = document.getElementById('g-' + key);
+    if (g) g.setAttribute('display', show[key] ? '' : 'none');
+    drawActive();
+  };
+
+  // Build defs
+  const defs = el('defs', {}, svg);
+  for (const [id, col] of [
+    ['arr-comp','#aa3300'],['arr-recip','#2255aa'],
+    ['arr-third','#228833'],['arr-dark','#1a1814']
+  ]) {
+    const m = el('marker', {
+      id, markerWidth:'8', markerHeight:'6',
+      refX:'7', refY:'3', orient:'auto'
+    }, defs);
+    el('polygon', { points:'0,0 8,3 0,6', fill:col }, m);
+  }
+
+  // Background
+  el('rect', { x:0, y:0, width:VW, height:VH, fill:'#fdfaf4' }, svg);
+
+  // Grid
+  const gGrid = el('g', { stroke:'#e4ddd0', 'stroke-width':'0.4' }, svg);
+  for (let i = 0; i <= Math.ceil(XMAX); i++)
+    el('line', { x1:tx(i), y1:ty(-0.3), x2:tx(i), y2:ty(YMAX) }, gGrid);
+  for (let i = 0; i <= Math.ceil(YMAX); i++)
+    el('line', { x1:tx(-0.3), y1:ty(i), x2:tx(XMAX), y2:ty(i) }, gGrid);
+
+  // Unit square
+  el('rect', { x:tx(0), y:ty(1), width:SX, height:SY,
+    fill:'rgba(34,136,51,0.07)', stroke:'#228833',
+    'stroke-width':'0.8', 'stroke-dasharray':'3,2' }, svg);
+
+  // Diagonal
+  el('line', { x1:tx(0), y1:ty(0), x2:tx(4.5), y2:ty(4.5),
+    stroke:'#c4a44a', 'stroke-width':'0.9',
+    'stroke-dasharray':'5,3', opacity:'0.6' }, svg);
+  txt('x = y', { x:tx(3.85), y:ty(4.05),
+    fill:'#996600', 'font-family':'Georgia,serif',
+    'font-size':'13', 'font-style':'italic', opacity:'0.7' }, svg);
+
+  // Hyperbola
+  const gHyp = el('g', { id:'g-hyp' }, svg);
+  let hd = '';
+  for (let xi = 0.22; xi <= XMAX - 0.05; xi += 0.015) {
+    const yi = 1/xi;
+    if (yi > YMAX) continue;
+    hd += hd === '' ? `M${tx(xi).toFixed(1)},${ty(yi).toFixed(1)}`
+                    : ` L${tx(xi).toFixed(1)},${ty(yi).toFixed(1)}`;
+  }
+  el('path', { d:hd, fill:'none', stroke:'#884488',
+    'stroke-width':'1.5', opacity:'0.55' }, gHyp);
+  txt('xy = 1', { x:tx(0.24), y:ty(3.55),
+    fill:'#884488', 'font-family':'Georgia,serif',
+    'font-size':'12', 'font-style':'italic', opacity:'0.8' }, gHyp);
+
+  // Complement background
+  const gComp = el('g', { id:'g-comp' }, svg);
+  el('rect', { x:tx(0), y:OY-4, width:SX, height:8,
+    fill:'rgba(170,51,0,0.07)' }, gComp);
+  for (const [a,b] of [[0.15,0.85],[0.28,0.72],[0.4,0.6]]) {
+    el('path', {
+      d: quadPath(tx(a),OY, (tx(a)+tx(b))/2, OY-SY*0.22, tx(b),OY),
+      fill:'none', stroke:'#aa3300', 'stroke-width':'1.2',
+      opacity:'0.4', 'marker-end':'url(#arr-comp)'
+    }, gComp);
+  }
+  el('line', { x1:tx(0.5), y1:OY-9, x2:tx(0.5), y2:OY+9,
+    stroke:'#aa3300', 'stroke-width':'1.2', 'stroke-dasharray':'3,2' }, gComp);
+
+  // Reciprocal background
+  const gRecip = el('g', { id:'g-recip' }, svg);
+  for (const [a,b] of [[0.3,1/0.3],[0.45,1/0.45],[2.0,0.5],[3.5,1/3.5]]) {
+    if (b > XMAX-0.1 || b < 0.05) continue;
+    el('path', {
+      d: quadPath(tx(a),OY, (tx(a)+tx(b))/2, OY+SY*0.38, tx(b),OY),
+      fill:'none', stroke:'#2255aa', 'stroke-width':'1.2',
+      opacity:'0.35', 'marker-end':'url(#arr-recip)'
+    }, gRecip);
+  }
+  el('circle', { cx:tx(1), cy:OY, r:7,
+    fill:'none', stroke:'#2255aa', 'stroke-width':'1.5' }, gRecip);
+
+  // Third involution background fan
+  const gThird = el('g', { id:'g-third' }, svg);
+  for (let i = 1; i <= 20; i++) {
+    const xv = 1.08 + (XMAX-1.1)*(i/20);
+    const yv = xv/(xv-1);
+    if (yv < 0 || yv > YMAX) continue;
+    el('line', {
+      x1:tx(xv).toFixed(1), y1:OY,
+      x2:tx(0).toFixed(1),  y2:ty(yv).toFixed(1),
+      stroke:'#228833', 'stroke-width':'0.8',
+      opacity:(0.05 + 0.17*(1-i/20)).toFixed(2)
+    }, gThird);
+  }
+
+  // Axes
+  el('line', { x1:tx(-0.1), y1:OY, x2:tx(XMAX-0.12), y2:OY,
+    stroke:'#1a1814', 'stroke-width':'2',
+    'marker-end':'url(#arr-dark)' }, svg);
+  el('line', { x1:tx(0), y1:OY+10, x2:tx(0), y2:ty(YMAX-0.12),
+    stroke:'#1a1814', 'stroke-width':'2',
+    'marker-end':'url(#arr-dark)' }, svg);
+
+  // Ticks and numbers
+  const gTick = el('g', { stroke:'#1a1814', 'stroke-width':'1' }, svg);
+  const gNum  = el('g', { fill:'#3a3530', 'font-family':'Georgia,serif', 'font-size':'13' }, svg);
+  for (let i = 1; i < XMAX; i++) {
+    el('line', { x1:tx(i), y1:OY-3, x2:tx(i), y2:OY+3 }, gTick);
+    txt(String(i), { x:tx(i), y:OY+16, 'text-anchor':'middle' }, gNum);
+  }
+  for (let i = 1; i < YMAX; i++) {
+    el('line', { x1:tx(0)-3, y1:ty(i), x2:tx(0)+3, y2:ty(i) }, gTick);
+    txt(String(i), { x:tx(0)-7, y:ty(i)+4, 'text-anchor':'end' }, gNum);
+  }
+
+  // Infinity
+  const gInf = el('g', { fill:'#1a1814', 'font-family':'Georgia,serif',
+    'font-size':'15', 'font-style':'italic' }, svg);
+  txt('∞', { x:tx(XMAX-0.2), y:OY-6 }, gInf);
+  txt('∞', { x:tx(0)+4,      y:ty(YMAX-0.12) }, gInf);
+
+  // Special points on axis
+  for (const [xv, col] of [[0,'#228833'],[0.5,'#aa3300'],[2,'#228833']]) {
+    el('circle', { cx:tx(xv), cy:OY, r:3.5, fill:col }, svg);
+  }
+  const gSpl = el('g', { 'font-family':'Georgia,serif', 'font-size':'12' }, svg);
+  txt('0', { x:tx(0)-5,   y:OY+16, 'text-anchor':'end',    fill:'#228833' }, gSpl);
+  txt('½', { x:tx(0.5),   y:OY+16, 'text-anchor':'middle', fill:'#aa3300' }, gSpl);
+  txt('2', { x:tx(2),     y:OY+16, 'text-anchor':'middle', fill:'#228833' }, gSpl);
+
+  // Hinge (1,1)
+  el('circle', { cx:tx(1), cy:ty(1), r:5.5,
+    fill:'#228833', stroke:'#fdfaf4', 'stroke-width':'1.5' }, svg);
+  txt('(1,1)', { x:tx(1)+8, y:ty(1)-5,
+    fill:'#228833', 'font-family':'Georgia,serif',
+    'font-size':'11', 'font-style':'italic' }, svg);
+
+  // Diagram labels
+  txt('1−x', { x:tx(0.08), y:ty(0.42),
+    fill:'#aa3300', 'font-family':'Georgia,serif',
+    'font-size':'12', 'font-style':'italic' }, svg);
+  txt('1/x', { x:tx(3.6), y:ty(0.52),
+    fill:'#2255aa', 'font-family':'Georgia,serif',
+    'font-size':'12', 'font-style':'italic' }, svg);
+  txt('x/(x−1)', { x:tx(3.4), y:ty(1.85),
+    fill:'#228833', 'font-family':'Georgia,serif',
+    'font-size':'12', 'font-style':'italic' }, svg);
+
+  // Active layer
+  const gActive = el('g', { id:'g-active' }, svg);
+
+  function drawActive() {
+    gActive.innerHTML = '';
+    if (activeX === null) return;
+    const x   = activeX;
+    const cx2 = 1 - x;
+    const rx2 = 1 / x;
+    const tv2 = x / (x - 1);
+
+    // x dot
+    el('circle', { cx:tx(x).toFixed(1), cy:OY, r:7,
+      fill:'#1a1814', stroke:'#fdfaf4', 'stroke-width':'1.5' }, gActive);
+    txt(`x = ${x.toFixed(2)}`, {
+      x:(tx(x)+10).toFixed(1), y:OY-13,
+      fill:'#1a1814', 'font-family':'Courier New,monospace',
+      'font-size':'12', 'font-weight':'bold'
+    }, gActive);
+
+    // Complement
+    if (show.comp && cx2 >= 0 && cx2 <= XMAX) {
+      el('path', {
+        d: quadPath(tx(x),OY-2, (tx(x)+tx(cx2))/2, OY-SY*0.44, tx(cx2),OY-2),
+        fill:'none', stroke:'#aa3300', 'stroke-width':'2.2',
+        'marker-end':'url(#arr-comp)'
+      }, gActive);
+      el('circle', { cx:tx(cx2).toFixed(1), cy:OY, r:6,
+        fill:'#aa3300', stroke:'#fdfaf4', 'stroke-width':'1.5' }, gActive);
+      txt(cx2.toFixed(3), {
+        x:tx(cx2).toFixed(1), y:OY-44,
+        fill:'#aa3300', 'font-family':'Courier New,monospace',
+        'font-size':'11', 'text-anchor':'middle'
+      }, gActive);
+      txt('1−x', {
+        x:tx(cx2).toFixed(1), y:OY-56,
+        fill:'#aa3300', 'font-family':'Georgia,serif',
+        'font-size':'10', 'font-style':'italic', 'text-anchor':'middle'
+      }, gActive);
+    }
+
+    // Reciprocal
+    if (show.recip && rx2 > 0 && rx2 <= XMAX) {
+      el('path', {
+        d: quadPath(tx(x),OY+2, (tx(x)+tx(rx2))/2, OY+SY*0.54, tx(rx2),OY+2),
+        fill:'none', stroke:'#2255aa', 'stroke-width':'2.2',
+        'marker-end':'url(#arr-recip)'
+      }, gActive);
+      el('circle', { cx:tx(rx2).toFixed(1), cy:OY, r:6,
+        fill:'#2255aa', stroke:'#fdfaf4', 'stroke-width':'1.5' }, gActive);
+      txt(rx2.toFixed(3), {
+        x:tx(rx2).toFixed(1), y:OY+62,
+        fill:'#2255aa', 'font-family':'Courier New,monospace',
+        'font-size':'11', 'text-anchor':'middle'
+      }, gActive);
+      txt('1/x', {
+        x:tx(rx2).toFixed(1), y:OY+74,
+        fill:'#2255aa', 'font-family':'Georgia,serif',
+        'font-size':'10', 'font-style':'italic', 'text-anchor':'middle'
+      }, gActive);
+    }
+
+    // Third involution
+    if (show.third && tv2 > 0 && tv2 <= YMAX) {
+      el('line', {
+        x1:tx(x).toFixed(1), y1:OY,
+        x2:tx(0).toFixed(1), y2:ty(tv2).toFixed(1),
+        stroke:'#228833', 'stroke-width':'2.5', opacity:'0.9'
+      }, gActive);
+      el('circle', { cx:tx(0).toFixed(1), cy:ty(tv2).toFixed(1), r:6,
+        fill:'#228833', stroke:'#fdfaf4', 'stroke-width':'1.5' }, gActive);
+      el('line', {
+        x1:tx(x).toFixed(1), y1:OY,
+        x2:tx(x).toFixed(1), y2:(OY+16).toFixed(1),
+        stroke:'#228833', 'stroke-width':'0.8', 'stroke-dasharray':'3,3'
+      }, gActive);
+      el('line', {
+        x1:tx(0).toFixed(1), y1:ty(tv2).toFixed(1),
+        x2:(tx(0)-16).toFixed(1), y2:ty(tv2).toFixed(1),
+        stroke:'#228833', 'stroke-width':'0.8', 'stroke-dasharray':'3,3'
+      }, gActive);
+      txt(tv2.toFixed(3), {
+        x:(tx(0)-10).toFixed(1), y:(ty(tv2)+4).toFixed(1),
+        fill:'#228833', 'font-family':'Courier New,monospace',
+        'font-size':'11', 'text-anchor':'end'
+      }, gActive);
+      txt('x/(x−1)', {
+        x:(tx(0)-10).toFixed(1), y:(ty(tv2)-7).toFixed(1),
+        fill:'#228833', 'font-family':'Georgia,serif',
+        'font-size':'10', 'font-style':'italic', 'text-anchor':'end'
+      }, gActive);
+      el('circle', { cx:tx(1).toFixed(1), cy:ty(1).toFixed(1), r:9,
+        fill:'none', stroke:'#228833', 'stroke-width':'2' }, gActive);
+    }
+
+    document.getElementById('rv-x').textContent = x.toFixed(4);
+    document.getElementById('rv-c').textContent =
+      (cx2 >= 0 && cx2 <= XMAX) ? cx2.toFixed(4) : '—';
+    document.getElementById('rv-r').textContent =
+      (rx2 > 0 && rx2 <= XMAX) ? rx2.toFixed(4) : '→ ∞';
+    document.getElementById('rv-t').textContent =
+      (tv2 > 0 && tv2 <= YMAX) ? tv2.toFixed(4) :
+      tv2 < 0 ? '< 0' : '→ ∞';
+  }
+
+  // Input handling
+  const wrap = document.getElementById('svgwrap');
+
+  function getWorldX(e) {
+    const r = wrap.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const fracX = (clientX - r.left) / r.width;
+    const svgX = fracX * VW;
+    return (svgX - OX) / SX;
+  }
+
+  function handle(e) {
+    e.preventDefault();
+    const wx = getWorldX(e);
+    if (wx > 0.05 && wx < XMAX - 0.1) {
+      activeX = Math.max(0.06, Math.min(XMAX - 0.1, wx));
+      drawActive();
+    }
+  }
+
+  wrap.addEventListener('touchstart', handle, { passive: false });
+  wrap.addEventListener('touchmove',  handle, { passive: false });
+  wrap.addEventListener('mousedown',  handle);
+  wrap.addEventListener('mousemove',  e => { if (e.buttons) handle(e); });
+
+})();
+</script>
+</body>
+</html>

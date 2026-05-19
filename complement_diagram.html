@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Complement: x → 1−x</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: #f7f4ee;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #1a1814;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 12px 40px;
+}
+
+h1 {
+  font-size: 1.1rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 3px;
+}
+
+.subtitle {
+  font-style: italic;
+  font-size: 0.92rem;
+  color: #6b6356;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.svg-wrap {
+  width: 100%;
+  max-width: 700px;
+  border: 1px solid #c8c0b0;
+  background: #fdfaf4;
+  box-shadow: 4px 4px 0 #c8c0b0;
+  touch-action: none;
+  cursor: ew-resize;
+}
+.svg-wrap svg { display: block; width: 100%; height: auto; }
+
+.readout {
+  width: 100%;
+  max-width: 700px;
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  border: 1px solid #c8c0b0;
+  background: #fdfaf4;
+  box-shadow: 2px 2px 0 #c8c0b0;
+}
+.r-cell {
+  padding: 9px 12px;
+  border-right: 1px solid #c8c0b0;
+  text-align: center;
+}
+.r-cell:last-child { border-right: none; }
+.r-label { font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: #6b6356; margin-bottom: 3px; }
+.r-value { font-family: 'Courier New', monospace; font-size: 1.05rem; }
+
+.note {
+  width: 100%;
+  max-width: 700px;
+  margin-top: 10px;
+  padding: 12px 16px;
+  border: 1px solid #c8c0b0;
+  background: #fdfaf4;
+  font-style: italic;
+  font-size: 0.85rem;
+  color: #6b6356;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.note strong { font-style: normal; color: #3a3530; }
+</style>
+</head>
+<body>
+
+
+<div style="width:100%;max-width:700px;margin-bottom:16px;border:1px solid #c8c0b0;background:#fdfaf4;box-shadow:3px 3px 0 #c8c0b0;">
+  <div style="background:#ede7f6;border-bottom:2px solid #5B2D8E;padding:10px 16px;">
+    <div style="font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:#5B2D8E;margin-bottom:2px;">Working note · K. Forseth · May 2026</div>
+    <div style="font-style:italic;font-size:0.9rem;color:#6b6356;">Fig. 5 — Complement: x &rarr; 1&minus;x</div>
+  </div>
+  <div style="padding:13px 16px;font-size:0.88rem;line-height:1.65;color:#3a3530;">
+    <p style="margin-bottom:9px;">
+      <strong>What this diagram shows:</strong> Complement is the simplest of the three involutions.
+      It requires only a single line with two marked endpoints — 0 and 1 — and a compass
+      to bisect the segment between them. The midpoint &frac12; is the fixed point: it maps to itself.
+      Every other point x in the interval maps to 1&minus;x, its mirror image across &frac12;.
+    </p>
+    <p style="margin-bottom:9px;">
+      The <strong style="color:#aa3300">compass arcs</strong> from 0 and 1 (equal radius, slightly
+      greater than half the unit) intersect above the line. The vertical dropped from that intersection
+      locates &frac12; by pure bisection — no ratio, no multiplication, no second axis.
+      This is an entirely <em>additive</em> construction: it measures and bisects a distance.
+    </p>
+    <p style="margin-bottom:9px;">
+      The equal distance markers show that x and 1&minus;x are always the same distance
+      from &frac12; — one to the left, one to the right. The swap is a reflection.
+    </p>
+    <p style="margin-bottom:0;">
+      <strong>Minimal apparatus:</strong> one line, two marked points (0 and 1), a compass.
+      No multiplication, no ratio, no second axis. The unit is treated as a <em>length</em>:
+      the distance from 0 to 1.
+    </p>
+  </div>
+</div>
+
+<h1>Complement</h1>
+<p class="subtitle">x &rarr; 1&minus;x &nbsp;&middot;&nbsp; one line &nbsp;&middot;&nbsp; compass bisection &nbsp;&middot;&nbsp; no multiplication</p>
+
+<div class="svg-wrap" id="svgwrap">
+<svg id="mainsvg" viewBox="0 0 700 340" xmlns="http://www.w3.org/2000/svg">
+</svg>
+</div>
+
+<div class="readout">
+  <div class="r-cell">
+    <div class="r-label">x</div>
+    <div class="r-value" style="color:#2255aa" id="rv-x">—</div>
+  </div>
+  <div class="r-cell">
+    <div class="r-label">1&minus;x</div>
+    <div class="r-value" style="color:#aa3300" id="rv-comp">—</div>
+  </div>
+  <div class="r-cell">
+    <div class="r-label">fixed point</div>
+    <div class="r-value" style="color:#cc2244">½</div>
+  </div>
+</div>
+
+<div class="note">
+  <strong>Construction:</strong> the compass arcs from 0 and 1 intersect above the line, 
+  locating the midpoint ½ by bisection. Any point x reflects across ½ to give 1&minus;x. 
+  Drag along the line to move x. The construction uses only distance — no ratios, no second axis.
+</div>
+
+<script>
+(function() {
+
+const NS  = 'http://www.w3.org/2000/svg';
+const svg = document.getElementById('mainsvg');
+const VW  = 700, VH = 340;
+
+// Line layout
+const LY   = VH * 0.52;   // y of the number line
+const L0   = VW * 0.12;   // x position of 0
+const L1   = VW * 0.78;   // x position of 1
+const UNIT = L1 - L0;
+const LHALF = (L0 + L1) / 2;
+
+// Clamp x to (0, 1) exclusive for interest, but allow slightly outside
+const XMIN = 0.05, XMAX = 0.95;
+let currentT = 0.28;  // parametric: x = L0 + t*UNIT
+
+function tToWorld(t) { return t; }  // world value = t (x is fraction of unit)
+function worldToSvg(w) { return L0 + w * UNIT; }
+
+function el(tag, attrs, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k,v] of Object.entries(attrs)) e.setAttribute(k,v);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function txt(s, attrs, parent) {
+  const e = el('text', attrs, parent);
+  e.textContent = s;
+  return e;
+}
+
+// Arc helper: draw arc of circle centered at (cx,cy) radius r
+// from angle a1 to a2 (degrees), counter-clockwise
+function arcPath(cx, cy, r, a1deg, a2deg) {
+  const a1 = a1deg * Math.PI / 180;
+  const a2 = a2deg * Math.PI / 180;
+  const x1 = cx + r * Math.cos(a1);
+  const y1 = cy - r * Math.sin(a1);
+  const x2 = cx + r * Math.cos(a2);
+  const y2 = cy - r * Math.sin(a2);
+  const large = (a2deg - a1deg > 180) ? 1 : 0;
+  return `M${x1.toFixed(1)},${y1.toFixed(1)} A${r.toFixed(1)},${r.toFixed(1)} 0 ${large},0 ${x2.toFixed(1)},${y2.toFixed(1)}`;
+}
+
+function buildBase() {
+  svg.innerHTML = '';
+
+  // Defs: arrowhead
+  const defs = el('defs', {}, svg);
+  const m = el('marker', {
+    id:'arr', markerWidth:'8', markerHeight:'6',
+    refX:'7', refY:'3', orient:'auto'
+  }, defs);
+  el('polygon', {points:'0,0 8,3 0,6', fill:'#aa3300'}, m);
+  const m2 = el('marker', {
+    id:'arr2', markerWidth:'8', markerHeight:'6',
+    refX:'1', refY:'3', orient:'auto'
+  }, defs);
+  el('polygon', {points:'8,0 0,3 8,6', fill:'#aa3300'}, m2);
+
+  // Background
+  el('rect', {x:0,y:0,width:VW,height:VH,fill:'#fdfaf4'}, svg);
+
+  // Unit interval shading
+  el('rect', {
+    x:L0, y:LY-10, width:UNIT, height:20,
+    fill:'rgba(34,136,51,0.08)',
+    stroke:'#228833', 'stroke-width':'1',
+    'stroke-dasharray':'4,3'
+  }, svg);
+
+  // Extended number line
+  el('line', {
+    x1:L0-50, y1:LY, x2:VW-20, y2:LY,
+    stroke:'#1a1814', 'stroke-width':'2.5',
+    'marker-end':'url(#arr-dark)'
+  }, svg);
+  // Arrow manually
+  el('line', {x1:L0-50,y1:LY,x2:VW-30,y2:LY,stroke:'#1a1814','stroke-width':'2.5'}, svg);
+  el('polygon', {
+    points:`${VW-30},${LY} ${VW-30-9},${LY-3.5} ${VW-30-9},${LY+3.5}`,
+    fill:'#1a1814'
+  }, svg);
+
+  // Fixed points: 0, 1
+  el('circle', {cx:L0, cy:LY, r:5, fill:'#228833', stroke:'#fdfaf4','stroke-width':'1.5'}, svg);
+  el('circle', {cx:L1, cy:LY, r:5, fill:'#1a1814', stroke:'#fdfaf4','stroke-width':'1.5'}, svg);
+
+  // Labels 0 and 1
+  txt('0', {x:L0, y:LY+22, 'text-anchor':'middle', fill:'#228833',
+    'font-family':'Georgia,serif','font-size':'16','font-weight':'bold'}, svg);
+  txt('1', {x:L1, y:LY+22, 'text-anchor':'middle', fill:'#1a1814',
+    'font-family':'Georgia,serif','font-size':'16','font-weight':'bold'}, svg);
+
+  // "one axis only" label
+  txt('one axis only', {x:VW-24, y:LY-20, 'text-anchor':'end',
+    fill:'#6b6356','font-family':'Georgia,serif','font-size':'11','font-style':'italic'}, svg);
+
+  // Active layer
+  el('g', {id:'g-active'}, svg);
+}
+
+function quadBezier(x1,y1,cpx,cpy,x2,y2) {
+  return `M${x1.toFixed(1)},${y1.toFixed(1)} Q${cpx.toFixed(1)},${cpy.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}`;
+}
+
+function drawActive() {
+  const g = document.getElementById('g-active');
+  if (!g) return;
+  g.innerHTML = '';
+
+  const t   = currentT;
+  const xW  = t;           // world value of x
+  const cW  = 1 - t;       // world value of 1-x
+  const xSvg = worldToSvg(xW);
+  const cSvg = worldToSvg(cW);
+
+  // ── Compass arcs ──
+  // Arc radius = distance from each endpoint to midpoint... 
+  // Classic bisection: arcs centered at 0 and 1, radius slightly > UNIT/2
+  const arcR = UNIT * 0.58;
+
+  // Arc from 0 (centered at L0)
+  // Find intersection above line: both arcs have same radius arcR
+  // Intersection y: sqrt(arcR² - (LHALF-L0)²) above line
+  const halfDist = LHALF - L0;
+  const intersectY = LY - Math.sqrt(Math.max(0, arcR*arcR - halfDist*halfDist));
+
+  // Angle range for arc from L0: from about 20° to about 160°
+  const ang0start = Math.atan2(LY - (LY + 8), (L0 + arcR*0.3) - L0) * 180/Math.PI;
+  
+  // Draw arc from 0: sweep from right-ish to top-left-ish
+  el('path', {
+    d: arcPath(L0, LY, arcR, 15, 145),
+    fill:'none', stroke:'#aa3300', 'stroke-width':'1.2',
+    'stroke-dasharray':'5,3', opacity:'0.7'
+  }, g);
+
+  // Draw arc from 1: sweep from left-ish to top-right-ish  
+  el('path', {
+    d: arcPath(L1, LY, arcR, 35, 165),
+    fill:'none', stroke:'#aa3300', 'stroke-width':'1.2',
+    'stroke-dasharray':'5,3', opacity:'0.7'
+  }, g);
+
+  // Intersection point above line
+  const intX = LHALF;
+  const intY = intersectY;
+
+  // Dashed vertical drop from intersection to midpoint on line
+  el('line', {
+    x1:intX, y1:intY+4, x2:intX, y2:LY,
+    stroke:'#aa3300', 'stroke-width':'1',
+    'stroke-dasharray':'4,3', opacity:'0.8'
+  }, g);
+
+  // Small cross at intersection
+  el('line', {x1:intX-6,y1:intY, x2:intX+6,y2:intY, stroke:'#aa3300','stroke-width':'1.5'}, g);
+  el('line', {x1:intX,y1:intY-6, x2:intX,y2:intY+6, stroke:'#aa3300','stroke-width':'1.5'}, g);
+
+  // "compass bisection" label
+  txt('compass', {x:intX + 24, y:intY - 8,
+    fill:'#aa3300','font-family':'Georgia,serif',
+    'font-size':'11','font-style':'italic'}, g);
+  txt('bisection', {x:intX + 24, y:intY + 5,
+    fill:'#aa3300','font-family':'Georgia,serif',
+    'font-size':'11','font-style':'italic'}, g);
+
+  // ── Midpoint ½ ──
+  el('circle', {cx:LHALF, cy:LY, r:7,
+    fill:'none', stroke:'#cc2244', 'stroke-width':'2.5'}, g);
+  el('circle', {cx:LHALF, cy:LY, r:3,
+    fill:'#cc2244'}, g);
+  txt('½', {x:LHALF, y:LY+22, 'text-anchor':'middle',
+    fill:'#cc2244','font-family':'Georgia,serif',
+    'font-size':'15','font-weight':'bold'}, g);
+  txt('fixed', {x:LHALF, y:LY-14, 'text-anchor':'middle',
+    fill:'#cc2244','font-family':'Georgia,serif',
+    'font-size':'10','font-style':'italic'}, g);
+
+  // ── Swap arrows ──
+  // Above: x → 1-x
+  const midArcX = (xSvg + cSvg) / 2;
+  const arcHeight = Math.abs(cSvg - xSvg) * 0.38 + 20;
+  const cpY = LY - arcHeight;
+
+  el('path', {
+    d: quadBezier(xSvg, LY-2, midArcX, cpY, cSvg, LY-2),
+    fill:'none', stroke:'#aa3300', 'stroke-width':'2.2',
+    'marker-end':'url(#arr-fwd)'
+  }, g);
+
+  // Below: 1-x → x (return arc)
+  const cpY2 = LY + arcHeight * 0.75;
+  el('path', {
+    d: quadBezier(cSvg, LY+2, midArcX, cpY2, xSvg, LY+2),
+    fill:'none', stroke:'#aa3300', 'stroke-width':'1.6',
+    'stroke-dasharray':'6,3',
+    'marker-end':'url(#arr-back)'
+  }, g);
+
+  // Add arrowhead markers to defs dynamically
+  const defs = svg.querySelector('defs');
+  // Forward arrow
+  let af = svg.getElementById('arr-fwd');
+  if (!af) {
+    af = el('marker', {id:'arr-fwd', markerWidth:'8',markerHeight:'6',refX:'7',refY:'3',orient:'auto'}, defs);
+    el('polygon', {points:'0,0 8,3 0,6', fill:'#aa3300'}, af);
+  }
+  let ab = svg.getElementById('arr-back');
+  if (!ab) {
+    ab = el('marker', {id:'arr-back', markerWidth:'8',markerHeight:'6',refX:'7',refY:'3',orient:'auto'}, defs);
+    el('polygon', {points:'0,0 8,3 0,6', fill:'#aa3300', opacity:'0.7'}, ab);
+  }
+
+  // ── x dot ──
+  el('circle', {cx:xSvg, cy:LY, r:8,
+    fill:'#2255aa', stroke:'#fdfaf4','stroke-width':'2'}, g);
+  txt('x', {x:xSvg, y:LY+4, 'text-anchor':'middle',
+    fill:'white','font-family':'Georgia,serif','font-size':'11','font-weight':'bold'}, g);
+  txt(xW.toFixed(3), {x:xSvg, y:LY-14, 'text-anchor':'middle',
+    fill:'#2255aa','font-family':'Courier New,monospace','font-size':'11','font-weight':'bold'}, g);
+
+  // ── 1-x dot ──
+  el('circle', {cx:cSvg, cy:LY, r:8,
+    fill:'#aa3300', stroke:'#fdfaf4','stroke-width':'2'}, g);
+  txt('1\u2212x', {x:cSvg, y:LY+4, 'text-anchor':'middle',
+    fill:'white','font-family':'Georgia,serif','font-size':'9'}, g);
+  txt(cW.toFixed(3), {x:cSvg, y:LY-14, 'text-anchor':'middle',
+    fill:'#aa3300','font-family':'Courier New,monospace','font-size':'11','font-weight':'bold'}, g);
+
+  // ── Symmetry distance markers ──
+  // Show equal distances from ½
+  const d = Math.abs(xSvg - LHALF);
+  el('line', {x1:LHALF, y1:LY-28, x2:xSvg, y2:LY-28,
+    stroke:'#2255aa','stroke-width':'1','stroke-dasharray':'3,2',opacity:'0.6'}, g);
+  el('line', {x1:LHALF, y1:LY-28, x2:cSvg, y2:LY-28,
+    stroke:'#aa3300','stroke-width':'1','stroke-dasharray':'3,2',opacity:'0.6'}, g);
+  txt('d', {x:((LHALF+xSvg)/2), y:LY-32, 'text-anchor':'middle',
+    fill:'#2255aa','font-family':'Georgia,serif','font-size':'10','font-style':'italic'}, g);
+  txt('d', {x:((LHALF+cSvg)/2), y:LY-32, 'text-anchor':'middle',
+    fill:'#aa3300','font-family':'Georgia,serif','font-size':'10','font-style':'italic'}, g);
+
+  // Readout
+  document.getElementById('rv-x').textContent    = xW.toFixed(4);
+  document.getElementById('rv-comp').textContent = cW.toFixed(4);
+}
+
+// ── Input ──
+const wrap = document.getElementById('svgwrap');
+
+function getT(e) {
+  const r = wrap.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const svgX = (clientX - r.left) / r.width * VW;
+  return Math.max(XMIN, Math.min(XMAX, (svgX - L0) / UNIT));
+}
+
+function handle(e) {
+  e.preventDefault();
+  currentT = getT(e);
+  drawActive();
+}
+
+wrap.addEventListener('touchstart', handle, {passive:false});
+wrap.addEventListener('touchmove',  handle, {passive:false});
+wrap.addEventListener('mousedown',  handle);
+wrap.addEventListener('mousemove',  e => { if(e.buttons) handle(e); });
+
+buildBase();
+drawActive();
+
+})();
+</script>
+</body>
+</html>
