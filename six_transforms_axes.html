@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Six Transformations — Axis Diagram</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  background: #f7f4ee;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #1a1814;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 8px 6px;
+  overflow: hidden;
+}
+h1 {
+  font-size: 0.95rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 2px;
+  flex-shrink: 0;
+}
+.svg-wrap {
+  width: 100%;
+  max-width: 720px;
+  flex: 1 1 0;
+  min-height: 0;
+  border: 1px solid #c8c0b0;
+  background: #fdfaf4;
+  box-shadow: 3px 3px 0 #c8c0b0;
+  touch-action: none;
+  cursor: crosshair;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.svg-wrap svg { display: block; width: 100%; height: 100%; }
+.readout {
+  width: 100%;
+  max-width: 720px;
+  flex-shrink: 0;
+  margin-top: 4px;
+  border: 1px solid #c8c0b0;
+  background: #fdfaf4;
+  box-shadow: 1px 1px 0 #c8c0b0;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+.readout-cell {
+  padding: 4px 4px;
+  border-right: 1px solid #c8c0b0;
+  text-align: center;
+}
+.readout-cell:last-child { border-right: none; }
+.r-label { font-size: 0.58rem; letter-spacing: 0.04em; color: #6b6356; margin-bottom: 1px; white-space: nowrap; }
+.r-value { font-family: 'Courier New', monospace; font-size: 0.78rem; }
+.controls {
+  width: 100%;
+  max-width: 720px;
+  flex-shrink: 0;
+  margin-top: 4px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+.btn {
+  padding: 4px 2px;
+  border: 1px solid #c8c0b0;
+  background: #fdfaf4;
+  font-family: Georgia, serif;
+  font-size: 0.7rem;
+  color: #3a3530;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  box-shadow: 1px 1px 0 #c8c0b0;
+  user-select: none;
+}
+.btn.on { background: #eee8dc; }
+.dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<h1>Six Transformations &mdash; Anharmonic Group</h1>
+
+<div class="svg-wrap" id="svgwrap">
+<svg id="mainsvg" viewBox="0 0 720 440" xmlns="http://www.w3.org/2000/svg" style="touch-action:none;"></svg>
+</div>
+
+<div class="readout">
+  <div class="readout-cell">
+    <div class="r-label">x (identity)</div>
+    <div class="r-value" style="color:#888" id="rv-id">drag</div>
+  </div>
+  <div class="readout-cell">
+    <div class="r-label">1&minus;x</div>
+    <div class="r-value" style="color:#aa3300" id="rv-comp">&mdash;</div>
+  </div>
+  <div class="readout-cell">
+    <div class="r-label">1/x</div>
+    <div class="r-value" style="color:#2255aa" id="rv-recip">&mdash;</div>
+  </div>
+  <div class="readout-cell">
+    <div class="r-label">x/(x&minus;1)</div>
+    <div class="r-value" style="color:#228833" id="rv-third">&mdash;</div>
+  </div>
+  <div class="readout-cell">
+    <div class="r-label">1/(1&minus;x)</div>
+    <div class="r-value" style="color:#884488" id="rv-reach">&mdash;</div>
+  </div>
+  <div class="readout-cell">
+    <div class="r-label">(x&minus;1)/x</div>
+    <div class="r-value" style="color:#cc8800" id="rv-turn">&mdash;</div>
+  </div>
+  <div class="readout-cell">
+    <div class="r-label" style="font-size:0.52rem">order 1/2/2/2/3/3</div>
+    <div class="r-value" style="color:#6b6356;font-size:0.68rem">&#8593; toggle</div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn on" id="b-id"    onclick="tog('id',this)">
+    <span class="dot" style="background:#888"></span>Identity
+  </button>
+  <button class="btn on" id="b-comp"  onclick="tog('comp',this)">
+    <span class="dot" style="background:#aa3300"></span>Complement
+  </button>
+  <button class="btn on" id="b-recip" onclick="tog('recip',this)">
+    <span class="dot" style="background:#2255aa"></span>Reciprocal
+  </button>
+  <button class="btn on" id="b-third" onclick="tog('third',this)">
+    <span class="dot" style="background:#228833"></span>Third
+  </button>
+  <button class="btn on" id="b-reach" onclick="tog('reach',this)">
+    <span class="dot" style="background:#884488"></span>Reach
+  </button>
+  <button class="btn on" id="b-turn"  onclick="tog('turn',this)">
+    <span class="dot" style="background:#cc8800"></span>Turn
+  </button>
+</div>
+
+<script>
+(function() {
+  const VW = 720, VH = 440;
+  const XMAX = 5.2, XNEG = -2.2, YMAX = 4.2;
+  const OX = 168, OY = 330;
+  const SX = (VW - OX - 18) / XMAX;
+  const SY = (OY - 18) / YMAX;
+
+  function tx(x) { return OX + x * SX; }
+  function ty(y) { return OY - y * SY; }
+
+  const NS  = 'http://www.w3.org/2000/svg';
+  const svg = document.getElementById('mainsvg');
+
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(NS, tag);
+    for (const [k,v] of Object.entries(attrs)) e.setAttribute(k,v);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function txt(content, attrs, parent) {
+    const e = el('text', attrs, parent);
+    e.textContent = content;
+    return e;
+  }
+  function quadPath(x1,y1,cpx,cpy,x2,y2) {
+    return `M${x1.toFixed(1)},${y1.toFixed(1)} Q${cpx.toFixed(1)},${cpy.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}`;
+  }
+
+  let show = { id:true, comp:true, recip:true, third:true, reach:true, turn:true };
+  let activeX = null;
+
+  window.tog = function(key, btn) {
+    show[key] = !show[key];
+    btn.classList.toggle('on', show[key]);
+    const g = document.getElementById('g-bg-' + key);
+    if (g) g.setAttribute('display', show[key] ? '' : 'none');
+    drawActive();
+  };
+
+  // Defs
+  const defs = el('defs', {}, svg);
+  for (const [id, col] of [
+    ['arr-id','#888888'],['arr-comp','#aa3300'],['arr-recip','#2255aa'],
+    ['arr-third','#228833'],['arr-reach','#884488'],['arr-turn','#cc8800'],
+    ['arr-dark','#1a1814']
+  ]) {
+    const m = el('marker', { id, markerWidth:'8', markerHeight:'6', refX:'7', refY:'3', orient:'auto' }, defs);
+    el('polygon', { points:'0,0 8,3 0,6', fill:col }, m);
+  }
+
+  // Background rect
+  el('rect', { x:0, y:0, width:VW, height:VH, fill:'#fdfaf4' }, svg);
+
+  // Grid
+  const gGrid = el('g', { stroke:'#e4ddd0', 'stroke-width':'0.4' }, svg);
+  for (let i = Math.floor(XNEG); i <= Math.ceil(XMAX); i++)
+    el('line', { x1:tx(i), y1:ty(-0.2), x2:tx(i), y2:ty(YMAX) }, gGrid);
+  for (let i = 0; i <= Math.ceil(YMAX); i++)
+    el('line', { x1:tx(XNEG-0.1), y1:ty(i), x2:tx(XMAX), y2:ty(i) }, gGrid);
+
+  // Unit square
+  el('rect', { x:tx(0), y:ty(1), width:SX, height:SY,
+    fill:'rgba(34,136,51,0.05)', stroke:'#228833',
+    'stroke-width':'0.6', 'stroke-dasharray':'3,2' }, svg);
+
+  // ── xy=1 hyperbola — fixed background reference, no toggle ──
+  let hd = '';
+  for (let xi = 0.22; xi <= XMAX-0.05; xi += 0.015) {
+    const yi = 1/xi; if (yi > YMAX) continue;
+    hd += hd==='' ? `M${tx(xi).toFixed(1)},${ty(yi).toFixed(1)}`
+                  : ` L${tx(xi).toFixed(1)},${ty(yi).toFixed(1)}`;
+  }
+  el('path', { d:hd, fill:'none', stroke:'#b0a090', 'stroke-width':'1.0', opacity:'0.35' }, svg);
+  txt('xy=1', { x:tx(0.27), y:ty(3.1), fill:'#b0a090',
+    'font-family':'Georgia,serif', 'font-size':'9', 'font-style':'italic', opacity:'0.7' }, svg);
+
+  // ── Identity background: the diagonal x=y, styled as a group member ──
+  const gBgId = el('g', { id:'g-bg-id' }, svg);
+  const diagX1 = -0.4, diagX2 = Math.min(XMAX-0.2, YMAX-0.2);
+  el('line', {
+    x1:tx(diagX1), y1:ty(diagX1), x2:tx(diagX2), y2:ty(diagX2),
+    stroke:'#888888', 'stroke-width':'1.6', opacity:'0.55',
+    'stroke-dasharray':'6,3', 'marker-end':'url(#arr-id)'
+  }, gBgId);
+  txt('x → x', { x:tx(3.45), y:ty(3.75), fill:'#888888',
+    'font-family':'Georgia,serif', 'font-size':'10', 'font-style':'italic', opacity:'0.8' }, gBgId);
+
+  // Complement background
+  const gBgComp = el('g', { id:'g-bg-comp' }, svg);
+  el('rect', { x:tx(0), y:OY-3, width:SX, height:6, fill:'rgba(170,51,0,0.07)' }, gBgComp);
+  for (const [a,b] of [[0.15,0.85],[0.3,0.7],[0.42,0.58]]) {
+    el('path', { d:quadPath(tx(a),OY,(tx(a)+tx(b))/2,OY-SY*0.18,tx(b),OY),
+      fill:'none', stroke:'#aa3300', 'stroke-width':'1', opacity:'0.25',
+      'marker-end':'url(#arr-comp)' }, gBgComp);
+  }
+  el('line', { x1:tx(0.5), y1:OY-7, x2:tx(0.5), y2:OY+7,
+    stroke:'#aa3300', 'stroke-width':'1', 'stroke-dasharray':'3,2' }, gBgComp);
+
+  // Reciprocal background
+  const gBgRecip = el('g', { id:'g-bg-recip' }, svg);
+  for (const [a,b] of [[0.32,1/0.32],[0.55,1/0.55],[2.0,0.5],[3.5,1/3.5]]) {
+    if (b>XMAX-0.1||b<0.05) continue;
+    el('path', { d:quadPath(tx(a),OY,(tx(a)+tx(b))/2,OY+SY*0.3,tx(b),OY),
+      fill:'none', stroke:'#2255aa', 'stroke-width':'1', opacity:'0.22',
+      'marker-end':'url(#arr-recip)' }, gBgRecip);
+  }
+  el('circle', { cx:tx(1), cy:OY, r:5, fill:'none', stroke:'#2255aa',
+    'stroke-width':'1.2', opacity:'0.4' }, gBgRecip);
+
+  // Third background fan
+  const gBgThird = el('g', { id:'g-bg-third' }, svg);
+  for (let i=1;i<=16;i++) {
+    const xv=1.08+(XMAX-1.1)*(i/16), yv=xv/(xv-1);
+    if (yv<0||yv>YMAX) continue;
+    el('line', { x1:tx(xv).toFixed(1),y1:OY,x2:tx(0).toFixed(1),y2:ty(yv).toFixed(1),
+      stroke:'#228833','stroke-width':'0.7',opacity:(0.04+0.13*(1-i/16)).toFixed(2) }, gBgThird);
+  }
+
+  // Reach background fan
+  const gBgReach = el('g', { id:'g-bg-reach' }, svg);
+  for (let i=1;i<=12;i++) {
+    const xv=0.06+0.87*(i/12), yv=1/(1-xv);
+    if (yv<0||yv>YMAX) continue;
+    el('line', { x1:tx(xv).toFixed(1),y1:OY,x2:tx(0).toFixed(1),y2:ty(yv).toFixed(1),
+      stroke:'#884488','stroke-width':'0.7',opacity:(0.04+0.12*(1-i/12)).toFixed(2) }, gBgReach);
+  }
+
+  // Turn background arcs
+  const gBgTurn = el('g', { id:'g-bg-turn' }, svg);
+  for (const xv of [1.5,2.2,3.5,5.0]) {
+    const yv=(xv-1)/xv; if (yv<0||yv>1) continue;
+    el('path', { d:quadPath(tx(xv),OY,(tx(xv)+tx(yv))/2,OY-SY*0.14,tx(yv),OY),
+      fill:'none', stroke:'#cc8800', 'stroke-width':'1', opacity:'0.22',
+      'marker-end':'url(#arr-turn)' }, gBgTurn);
+  }
+
+  // Axes
+  el('line', { x1:tx(XNEG-0.05),y1:OY,x2:tx(XMAX-0.1),y2:OY,
+    stroke:'#1a1814','stroke-width':'2','marker-end':'url(#arr-dark)' }, svg);
+  el('line', { x1:tx(0),y1:OY+10,x2:tx(0),y2:ty(YMAX-0.1),
+    stroke:'#1a1814','stroke-width':'2','marker-end':'url(#arr-dark)' }, svg);
+
+  // Ticks & numbers
+  const gTick = el('g', { stroke:'#1a1814','stroke-width':'1' }, svg);
+  const gNum  = el('g', { fill:'#3a3530','font-family':'Georgia,serif','font-size':'11' }, svg);
+  for (let i=1;i<XMAX;i++) {
+    el('line',{x1:tx(i),y1:OY-3,x2:tx(i),y2:OY+3},gTick);
+    txt(String(i),{x:tx(i),y:OY+14,'text-anchor':'middle'},gNum);
+  }
+  for (let i=-1;i>=Math.ceil(XNEG);i--) {
+    el('line',{x1:tx(i),y1:OY-3,x2:tx(i),y2:OY+3},gTick);
+    txt(String(i),{x:tx(i),y:OY+14,'text-anchor':'middle'},gNum);
+  }
+  for (let i=1;i<YMAX;i++) {
+    el('line',{x1:tx(0)-3,y1:ty(i),x2:tx(0)+3,y2:ty(i)},gTick);
+    txt(String(i),{x:tx(0)-6,y:ty(i)+4,'text-anchor':'end'},gNum);
+  }
+
+  // Infinity labels
+  const gInf = el('g',{fill:'#1a1814','font-family':'Georgia,serif','font-size':'13','font-style':'italic'},svg);
+  txt('∞',{x:tx(XMAX-0.22),y:OY-5},gInf);
+  txt('∞',{x:tx(0)+4,y:ty(YMAX-0.1)},gInf);
+
+  // Fixed points on axis
+  for (const [xv,col] of [[0,'#228833'],[0.5,'#aa3300'],[1,'#2255aa'],[2,'#228833'],[-1,'#2255aa']]) {
+    el('circle',{cx:tx(xv),cy:OY,r:3.5,fill:col},svg);
+  }
+  const gSpl = el('g',{'font-family':'Georgia,serif','font-size':'10'},svg);
+  txt('0',{x:tx(0)-5,  y:OY+14,'text-anchor':'end',   fill:'#228833'},gSpl);
+  txt('½',{x:tx(0.5),  y:OY+14,'text-anchor':'middle',fill:'#aa3300'},gSpl);
+
+  // Hinge (1,1)
+  el('circle',{cx:tx(1),cy:ty(1),r:4.5,fill:'#228833',stroke:'#fdfaf4','stroke-width':'1.5'},svg);
+  txt('(1,1)',{x:tx(1)+7,y:ty(1)-4,fill:'#228833','font-family':'Georgia,serif','font-size':'9','font-style':'italic'},svg);
+
+  // Formula labels
+  const gLbl = el('g',{'font-family':'Georgia,serif','font-size':'10','font-style':'italic'},svg);
+  txt('1−x',     {x:tx(0.09),y:ty(0.34),fill:'#aa3300'},gLbl);
+  txt('1/x',     {x:tx(3.4), y:ty(0.44),fill:'#2255aa'},gLbl);
+  txt('x/(x−1)', {x:tx(3.2), y:ty(1.62),fill:'#228833'},gLbl);
+  txt('1/(1−x)', {x:tx(0.06),y:ty(2.5), fill:'#884488'},gLbl);
+  txt('(x−1)/x', {x:tx(2.05),y:ty(0.27),fill:'#cc8800'},gLbl);
+
+  // Active layer
+  const gActive = el('g',{id:'g-active'},svg);
+
+  function fmt(v) {
+    if (!isFinite(v)||Math.abs(v)>99) return v>0?'+∞':'−∞';
+    return v.toFixed(3);
+  }
+  function inXRange(v) { return v>=XNEG && v<=XMAX; }
+  function inYRange(v) { return v>=0 && v<=YMAX; }
+
+  function drawActive() {
+    gActive.innerHTML = '';
+    if (activeX===null) return;
+    const x=activeX, cv=1-x, rv=1/x, tv=x/(x-1), pv=1/(1-x), uv=(x-1)/x;
+
+    // x dot
+    el('circle',{cx:tx(x).toFixed(1),cy:OY,r:7,fill:'#1a1814',stroke:'#fdfaf4','stroke-width':'1.5'},gActive);
+    txt(`x=${x.toFixed(2)}`,{x:(tx(x)+9).toFixed(1),y:OY-11,
+      fill:'#1a1814','font-family':'Courier New,monospace','font-size':'10','font-weight':'bold'},gActive);
+
+    // ── Identity: dot on the diagonal at (x, x) ──
+    if (show.id && inYRange(x)) {
+      el('circle',{cx:tx(x).toFixed(1),cy:ty(x).toFixed(1),r:5.5,
+        fill:'#888888',stroke:'#fdfaf4','stroke-width':'1.5'},gActive);
+      // vertical connector from axis up to diagonal
+      el('line',{x1:tx(x).toFixed(1),y1:OY,x2:tx(x).toFixed(1),y2:ty(x).toFixed(1),
+        stroke:'#888888','stroke-width':'1.2',opacity:'0.5','stroke-dasharray':'3,3'},gActive);
+      txt(fmt(x),{x:(tx(x)+8).toFixed(1),y:(ty(x)+4).toFixed(1),
+        fill:'#888888','font-family':'Courier New,monospace','font-size':'9.5'},gActive);
+      txt('x→x',{x:(tx(x)+8).toFixed(1),y:(ty(x)-6).toFixed(1),
+        fill:'#888888','font-family':'Georgia,serif','font-size':'8.5','font-style':'italic'},gActive);
+    }
+
+    // ── Complement: arc above axis ──
+    if (show.comp && inXRange(cv)) {
+      el('path',{d:quadPath(tx(x),OY-2,(tx(x)+tx(cv))/2,OY-SY*0.4,tx(cv),OY-2),
+        fill:'none',stroke:'#aa3300','stroke-width':'2.1','marker-end':'url(#arr-comp)'},gActive);
+      el('circle',{cx:tx(cv).toFixed(1),cy:OY,r:5.5,fill:'#aa3300',stroke:'#fdfaf4','stroke-width':'1.5'},gActive);
+      txt(fmt(cv),{x:tx(cv).toFixed(1),y:OY-40,fill:'#aa3300',
+        'font-family':'Courier New,monospace','font-size':'9.5','text-anchor':'middle'},gActive);
+      txt('1−x',{x:tx(cv).toFixed(1),y:OY-51,fill:'#aa3300',
+        'font-family':'Georgia,serif','font-size':'8.5','font-style':'italic','text-anchor':'middle'},gActive);
+    }
+
+    // ── Reciprocal: arc below axis ──
+    if (show.recip && isFinite(rv) && inXRange(rv) && rv>0) {
+      el('path',{d:quadPath(tx(x),OY+2,(tx(x)+tx(rv))/2,OY+SY*0.44,tx(rv),OY+2),
+        fill:'none',stroke:'#2255aa','stroke-width':'2.1','marker-end':'url(#arr-recip)'},gActive);
+      el('circle',{cx:tx(rv).toFixed(1),cy:OY,r:5.5,fill:'#2255aa',stroke:'#fdfaf4','stroke-width':'1.5'},gActive);
+      txt(fmt(rv),{x:tx(rv).toFixed(1),y:OY+55,fill:'#2255aa',
+        'font-family':'Courier New,monospace','font-size':'9.5','text-anchor':'middle'},gActive);
+      txt('1/x',{x:tx(rv).toFixed(1),y:OY+66,fill:'#2255aa',
+        'font-family':'Georgia,serif','font-size':'8.5','font-style':'italic','text-anchor':'middle'},gActive);
+    }
+
+    // ── Third: line to y-axis ──
+    if (show.third && isFinite(tv) && inYRange(tv)) {
+      el('line',{x1:tx(x).toFixed(1),y1:OY,x2:tx(0).toFixed(1),y2:ty(tv).toFixed(1),
+        stroke:'#228833','stroke-width':'2.3',opacity:'0.9'},gActive);
+      el('circle',{cx:tx(0).toFixed(1),cy:ty(tv).toFixed(1),r:5.5,
+        fill:'#228833',stroke:'#fdfaf4','stroke-width':'1.5'},gActive);
+      el('line',{x1:tx(x).toFixed(1),y1:OY,x2:tx(x).toFixed(1),y2:(OY+13).toFixed(1),
+        stroke:'#228833','stroke-width':'0.8','stroke-dasharray':'3,3'},gActive);
+      el('line',{x1:tx(0).toFixed(1),y1:ty(tv).toFixed(1),
+        x2:(tx(0)-13).toFixed(1),y2:ty(tv).toFixed(1),
+        stroke:'#228833','stroke-width':'0.8','stroke-dasharray':'3,3'},gActive);
+      txt(fmt(tv),{x:(tx(0)-7).toFixed(1),y:(ty(tv)+4).toFixed(1),
+        fill:'#228833','font-family':'Courier New,monospace','font-size':'9.5','text-anchor':'end'},gActive);
+      txt('x/(x−1)',{x:(tx(0)-7).toFixed(1),y:(ty(tv)-6).toFixed(1),
+        fill:'#228833','font-family':'Georgia,serif','font-size':'8.5','font-style':'italic','text-anchor':'end'},gActive);
+      el('circle',{cx:tx(1).toFixed(1),cy:ty(1).toFixed(1),r:7.5,
+        fill:'none',stroke:'#228833','stroke-width':'1.7'},gActive);
+    }
+
+    // ── Reach: line to y-axis ──
+    if (show.reach && isFinite(pv) && inYRange(pv)) {
+      el('line',{x1:tx(x).toFixed(1),y1:OY,x2:tx(0).toFixed(1),y2:ty(pv).toFixed(1),
+        stroke:'#884488','stroke-width':'2.3',opacity:'0.9'},gActive);
+      el('circle',{cx:tx(0).toFixed(1),cy:ty(pv).toFixed(1),r:5.5,
+        fill:'#884488',stroke:'#fdfaf4','stroke-width':'1.5'},gActive);
+      el('line',{x1:tx(x).toFixed(1),y1:OY,x2:tx(x).toFixed(1),y2:(OY+13).toFixed(1),
+        stroke:'#884488','stroke-width':'0.8','stroke-dasharray':'3,3'},gActive);
+      el('line',{x1:tx(0).toFixed(1),y1:ty(pv).toFixed(1),
+        x2:(tx(0)-13).toFixed(1),y2:ty(pv).toFixed(1),
+        stroke:'#884488','stroke-width':'0.8','stroke-dasharray':'3,3'},gActive);
+      const off = (inYRange(tv) && Math.abs(pv-tv)<0.4) ? 14 : 0;
+      txt(fmt(pv),{x:(tx(0)-7-off).toFixed(1),y:(ty(pv)+4).toFixed(1),
+        fill:'#884488','font-family':'Courier New,monospace','font-size':'9.5','text-anchor':'end'},gActive);
+      txt('1/(1−x)',{x:(tx(0)-7-off).toFixed(1),y:(ty(pv)-6).toFixed(1),
+        fill:'#884488','font-family':'Georgia,serif','font-size':'8.5','font-style':'italic','text-anchor':'end'},gActive);
+    }
+
+    // ── Turn: arc above axis (x>1, output in (0,1)) ──
+    if (show.turn && isFinite(uv) && inXRange(uv) && uv>0 && uv<1) {
+      el('path',{d:quadPath(tx(x),OY-2,(tx(x)+tx(uv))/2,OY-SY*0.26,tx(uv),OY-2),
+        fill:'none',stroke:'#cc8800','stroke-width':'2.1','marker-end':'url(#arr-turn)'},gActive);
+      el('circle',{cx:tx(uv).toFixed(1),cy:OY,r:5.5,
+        fill:'#cc8800',stroke:'#fdfaf4','stroke-width':'1.5'},gActive);
+      txt(fmt(uv),{x:tx(uv).toFixed(1),y:OY-40,fill:'#cc8800',
+        'font-family':'Courier New,monospace','font-size':'9.5','text-anchor':'middle'},gActive);
+      txt('(x−1)/x',{x:tx(uv).toFixed(1),y:OY-51,fill:'#cc8800',
+        'font-family':'Georgia,serif','font-size':'8.5','font-style':'italic','text-anchor':'middle'},gActive);
+    }
+
+    document.getElementById('rv-id').textContent    = x.toFixed(4);
+    document.getElementById('rv-comp').textContent  = isFinite(cv) ? cv.toFixed(4) : '∞';
+    document.getElementById('rv-recip').textContent = isFinite(rv) ? rv.toFixed(4) : '∞';
+    document.getElementById('rv-third').textContent = isFinite(tv) ? tv.toFixed(4) : '∞';
+    document.getElementById('rv-reach').textContent = isFinite(pv) ? pv.toFixed(4) : '∞';
+    document.getElementById('rv-turn').textContent  = isFinite(uv) ? uv.toFixed(4) : '∞';
+  }
+
+  const wrap = document.getElementById('svgwrap');
+  function getWorldX(e) {
+    const r = wrap.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    return ((clientX - r.left) / r.width * VW - OX) / SX;
+  }
+  function handle(e) {
+    e.preventDefault();
+    let wx = getWorldX(e);
+    if (wx > XNEG+0.05 && wx < XMAX-0.1) {
+      if (Math.abs(wx) < 0.06) wx = wx<0 ? -0.06 : 0.06;
+      if (Math.abs(wx-1) < 0.03) wx = wx<1 ? 0.97 : 1.03;
+      activeX = wx;
+      drawActive();
+    }
+  }
+  wrap.addEventListener('touchstart', handle, {passive:false});
+  wrap.addEventListener('touchmove',  handle, {passive:false});
+  wrap.addEventListener('mousedown',  handle);
+  wrap.addEventListener('mousemove',  e => { if (e.buttons) handle(e); });
+})();
+</script>
+</body>
+</html>
