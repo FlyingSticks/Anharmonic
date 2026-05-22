@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Third Involution — Construction</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  background: #f7f4ee;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #1a1814;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 8px;
+  overflow: hidden;
+}
+h1 {
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 1px;
+  flex-shrink: 0;
+}
+.sub {
+  font-style: italic;
+  font-size: 0.74rem;
+  color: #6b6356;
+  text-align: center;
+  margin-bottom: 3px;
+  flex-shrink: 0;
+}
+.svg-wrap {
+  width: 100%;
+  max-width: 720px;
+  flex: 1 1 0;
+  min-height: 0;
+  border: 1px solid #c8c0b0;
+  background: #fdfaf4;
+  box-shadow: 3px 3px 0 #c8c0b0;
+  touch-action: none;
+  cursor: crosshair;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.svg-wrap svg { display: block; width: 100%; height: 100%; }
+.readout {
+  width: 100%; max-width: 720px;
+  flex-shrink: 0;
+  margin-top: 3px;
+  border: 1px solid #c8c0b0;
+  background: #fdfaf4;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+.rc {
+  padding: 4px 6px;
+  border-right: 1px solid #c8c0b0;
+  text-align: center;
+}
+.rc:last-child { border-right: none; }
+.rl { font-size: 0.58rem; color: #6b6356; }
+.rv { font-family: 'Courier New', monospace; font-size: 0.8rem; }
+.controls {
+  width: 100%; max-width: 720px;
+  flex-shrink: 0;
+  margin-top: 3px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+}
+.btn {
+  padding: 4px 2px;
+  border: 1px solid #c8c0b0;
+  background: #fdfaf4;
+  font-family: Georgia, serif;
+  font-size: 0.68rem;
+  color: #3a3530;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  box-shadow: 1px 1px 0 #c8c0b0;
+  user-select: none;
+}
+.btn.on { background: #eee8dc; }
+.dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<h1>Third Involution &mdash; Construction</h1>
+<p class="sub">x &rarr; x/(x&minus;1) &nbsp;&middot;&nbsp; drag along the x-axis</p>
+
+<div class="svg-wrap" id="svgwrap">
+  <svg id="mainsvg" viewBox="0 0 720 460" xmlns="http://www.w3.org/2000/svg" style="touch-action:none;"></svg>
+</div>
+
+<div class="readout">
+  <div class="rc"><div class="rl">x</div><div class="rv" id="rv-x" style="color:#1a1814">drag</div></div>
+  <div class="rc"><div class="rl">x/(x&minus;1)</div><div class="rv" id="rv-third" style="color:#228833">&mdash;</div></div>
+  <div class="rc"><div class="rl">verify: apply twice</div><div class="rv" id="rv-check" style="color:#884488">&mdash;</div></div>
+  <div class="rc"><div class="rl">hinge</div><div class="rv" id="rv-hinge" style="color:#c8a84a">(1, 1)</div></div>
+</div>
+
+<div class="controls">
+  <button class="btn on" onclick="tog('hyp',this)">
+    <span class="dot" style="background:#884488"></span>Hyperbola xy=1
+  </button>
+  <button class="btn on" onclick="tog('diag',this)">
+    <span class="dot" style="background:#888"></span>Diagonal x=y
+  </button>
+  <button class="btn on" onclick="tog('proj',this)">
+    <span class="dot" style="background:#228833"></span>Construction line
+  </button>
+  <button class="btn on" onclick="tog('labels',this)">
+    <span class="dot" style="background:#6b6356"></span>Labels
+  </button>
+</div>
+
+<script>
+(function(){
+  const VW=720, VH=460;
+  const NS='http://www.w3.org/2000/svg';
+  const svg=document.getElementById('mainsvg');
+
+  function el(tag,attrs,parent){
+    const e=document.createElementNS(NS,tag);
+    for(const[k,v] of Object.entries(attrs)) e.setAttribute(k,v);
+    if(parent) parent.appendChild(e);
+    return e;
+  }
+  function txt(s,attrs,parent){
+    const e=el('text',attrs,parent); e.textContent=s; return e;
+  }
+
+  // Coordinate system
+  // x-axis: world -0.5 to 5.5, y-axis: world -0.5 to 5.5
+  // Origin at (OX, OY) pixels
+  const XMIN=-0.5, XMAX=5.5, YMIN=-0.5, YMAX=5.5;
+  const OX = VW * (0-XMIN)/(XMAX-XMIN);
+  const OY = VH * (YMAX-0)/(YMAX-YMIN);
+  const SX = VW/(XMAX-XMIN);
+  const SY = VH/(YMAX-YMIN);
+
+  function tx(x){ return OX + x*SX; }
+  function ty(y){ return OY - y*SY; }
+  function wx(px){ return (px-OX)/SX; }
+
+  let show={hyp:true,diag:true,proj:true,labels:true};
+  window.tog=function(key,btn){
+    show[key]=!show[key];
+    btn.classList.toggle('on',show[key]);
+    drawActive();
+  };
+
+  // Arrow marker
+  const defs=el('defs',{},svg);
+  const m=el('marker',{id:'arr-g',markerWidth:'8',markerHeight:'6',
+    refX:'7',refY:'3',orient:'auto'},defs);
+  el('polygon',{points:'0,0 8,3 0,6',fill:'#228833'},m);
+  const m2=el('marker',{id:'arr-d',markerWidth:'8',markerHeight:'6',
+    refX:'7',refY:'3',orient:'auto'},defs);
+  el('polygon',{points:'0,0 8,3 0,6',fill:'#1a1814'},m2);
+
+  // Background
+  el('rect',{x:0,y:0,width:VW,height:VH,fill:'#fdfaf4'},svg);
+
+  // Active layer — everything redrawn on each interaction
+  const gActive=el('g',{},svg);
+
+  function inView(v,min,max){ return isFinite(v)&&v>=min&&v<=max; }
+
+  function fmt(v){
+    if(!isFinite(v)||Math.abs(v)>99) return v>0?'+inf':'-inf';
+    return v.toFixed(3);
+  }
+
+  // Extend a line through p1 and p2 to canvas edges
+  function extendLine(p1,p2){
+    const dx=p2[0]-p1[0], dy=p2[1]-p1[1];
+    if(Math.abs(dx)<0.001&&Math.abs(dy)<0.001) return [p1,p2];
+    const ts=[];
+    if(Math.abs(dx)>0.001){
+      ts.push((0-p1[0])/dx);
+      ts.push((VW-p1[0])/dx);
+    }
+    if(Math.abs(dy)>0.001){
+      ts.push((0-p1[1])/dy);
+      ts.push((VH-p1[1])/dy);
+    }
+    ts.sort((a,b)=>a-b);
+    return [
+      [p1[0]+ts[0]*dx, p1[1]+ts[0]*dy],
+      [p1[0]+ts[ts.length-1]*dx, p1[1]+ts[ts.length-1]*dy]
+    ];
+  }
+
+  let activeX=2.5;
+
+  function drawActive(){
+    gActive.innerHTML='';
+    const x=activeX;
+    const tv=x/(x-1);  // the transform
+
+    // ── Grid ──
+    const gGrid=el('g',{stroke:'#e4ddd0','stroke-width':'0.35'},gActive);
+    for(let i=0;i<=5;i++){
+      el('line',{x1:tx(i),y1:0,x2:tx(i),y2:VH},gGrid);
+      el('line',{x1:0,y1:ty(i),x2:VW,y2:ty(i)},gGrid);
+    }
+
+    // ── Unit square ──
+    el('rect',{x:tx(0),y:ty(1),width:SX,height:SY,
+      fill:'rgba(34,136,51,0.05)',stroke:'#228833',
+      'stroke-width':'0.6','stroke-dasharray':'3,2'},gActive);
+
+    // ── Hyperbola xy=1 ──
+    if(show.hyp){
+      let hd='';
+      for(let xi=0.18;xi<=XMAX-0.05;xi+=0.012){
+        const yi=1/xi;
+        if(yi<YMIN||yi>YMAX) continue;
+        const[px,py]=[tx(xi),ty(yi)];
+        hd+=hd===''?`M${px.toFixed(1)},${py.toFixed(1)}`:`L${px.toFixed(1)},${py.toFixed(1)}`;
+      }
+      el('path',{d:hd,fill:'none',stroke:'#884488','stroke-width':'1.5',opacity:'0.55'},gActive);
+      if(show.labels)
+        txt('xy = 1',{x:tx(0.22),y:ty(4.0),fill:'#884488',
+          'font-family':'Georgia,serif','font-size':'11','font-style':'italic'},gActive);
+    }
+
+    // ── Diagonal x=y ──
+    if(show.diag){
+      el('line',{x1:tx(0),y1:ty(0),x2:tx(Math.min(XMAX,YMAX)),y2:ty(Math.min(XMAX,YMAX)),
+        stroke:'#888888','stroke-width':'1.2','stroke-dasharray':'6,3',opacity:'0.65'},gActive);
+      if(show.labels)
+        txt('x = y',{x:tx(4.3),y:ty(4.55),fill:'#888888',
+          'font-family':'Georgia,serif','font-size':'11','font-style':'italic'},gActive);
+    }
+
+    // ── Axes ──
+    el('line',{x1:tx(XMIN),y1:OY,x2:tx(XMAX-0.1),y2:OY,
+      stroke:'#1a1814','stroke-width':'2.0','marker-end':'url(#arr-d)'},gActive);
+    el('line',{x1:OX,y1:VH,x2:OX,y2:ty(YMAX-0.1),
+      stroke:'#1a1814','stroke-width':'2.0','marker-end':'url(#arr-d)'},gActive);
+
+    // ── Ticks and numbers ──
+    const gTick=el('g',{stroke:'#1a1814','stroke-width':'0.9'},gActive);
+    const gNum=el('g',{fill:'#3a3530','font-family':'Georgia,serif','font-size':'11'},gActive);
+    for(let i=1;i<=5;i++){
+      el('line',{x1:tx(i),y1:OY-3,x2:tx(i),y2:OY+3},gTick);
+      txt(String(i),{x:tx(i),y:OY+15,'text-anchor':'middle'},gNum);
+      el('line',{x1:OX-3,y1:ty(i),x2:OX+3,y2:ty(i)},gTick);
+      txt(String(i),{x:OX-7,y:ty(i)+4,'text-anchor':'end'},gNum);
+    }
+    txt('0',{x:OX-7,y:OY+15,'text-anchor':'end',fill:'#3a3530',
+      'font-family':'Georgia,serif','font-size':'11'},gActive);
+
+    // ── Axis labels ──
+    txt('x',{x:tx(XMAX-0.15),y:OY-8,fill:'#1a1814',
+      'font-family':'Georgia,serif','font-size':'13','font-style':'italic'},gActive);
+    txt('y',{x:OX+6,y:ty(YMAX-0.15),fill:'#1a1814',
+      'font-family':'Georgia,serif','font-size':'13','font-style':'italic'},gActive);
+
+    // ── Hinge point (1,1) — always shown ──
+    el('circle',{cx:tx(1),cy:ty(1),r:6,fill:'#c8a84a',stroke:'#fdfaf4','stroke-width':'1.5'},gActive);
+    if(show.labels)
+      txt('(1, 1)',{x:tx(1)+10,y:ty(1)-6,fill:'#c8a84a',
+        'font-family':'Georgia,serif','font-size':'10','font-style':'italic'},gActive);
+
+    // ── Fixed points on axes ──
+    // x=0: third involution fixed point
+    el('circle',{cx:tx(0),cy:OY,r:4,fill:'#228833'},gActive);
+    // x=2: third involution fixed point
+    el('circle',{cx:tx(2),cy:OY,r:4,fill:'#228833'},gActive);
+    if(show.labels){
+      txt('0',{x:tx(0),y:OY+16,'text-anchor':'middle',fill:'#228833',
+        'font-family':'Georgia,serif','font-size':'10'},gActive);
+      txt('2',{x:tx(2),y:OY+16,'text-anchor':'middle',fill:'#228833',
+        'font-family':'Georgia,serif','font-size':'10'},gActive);
+    }
+
+    // ── Construction: line through x and hinge (1,1) to y-axis ──
+    if(show.proj && Math.abs(x-1)>0.05){
+      const Px=[tx(x), OY];          // x on x-axis
+      const Hinge=[tx(1), ty(1)];    // hinge point
+
+      // Extend the line through Px and Hinge across the canvas
+      const[ea,eb]=extendLine(Px,Hinge);
+      el('path',{d:`M${ea[0].toFixed(1)},${ea[1].toFixed(1)} L${eb[0].toFixed(1)},${eb[1].toFixed(1)}`,
+        fill:'none',stroke:'#228833','stroke-width':'1.8',opacity:'0.5',
+        'stroke-dasharray':'none'},gActive);
+
+      // The actual construction segment: from x on x-axis through hinge to y-axis
+      // Find where line hits y-axis (x=0)
+      const yAxisPoint=[tx(0), ty(tv)];
+
+      // Emphasise the active segment
+      el('line',{x1:Px[0].toFixed(1),y1:Px[1].toFixed(1),
+        x2:yAxisPoint[0].toFixed(1),y2:yAxisPoint[1].toFixed(1),
+        stroke:'#228833','stroke-width':'2.6','marker-end':'url(#arr-g)'},gActive);
+
+      // x dot on x-axis
+      el('circle',{cx:Px[0].toFixed(1),cy:OY,r:7,
+        fill:'#1a1814',stroke:'#fdfaf4','stroke-width':'1.5'},gActive);
+
+      // Output dot on y-axis
+      if(inView(tv,YMIN,YMAX)){
+        el('circle',{cx:OX,cy:ty(tv).toFixed(1),r:6,
+          fill:'#228833',stroke:'#fdfaf4','stroke-width':'1.5'},gActive);
+
+        // Dashed drop lines
+        el('line',{x1:Px[0].toFixed(1),y1:OY,x2:Px[0].toFixed(1),y2:(OY+14).toFixed(1),
+          stroke:'#228833','stroke-width':'0.8','stroke-dasharray':'3,3'},gActive);
+        el('line',{x1:OX,y1:ty(tv).toFixed(1),x2:(OX-14).toFixed(1),y2:ty(tv).toFixed(1),
+          stroke:'#228833','stroke-width':'0.8','stroke-dasharray':'3,3'},gActive);
+
+        if(show.labels){
+          // x label
+          txt(`x = ${x.toFixed(2)}`,{
+            x:(Px[0]+10).toFixed(1),y:(OY-12).toFixed(1),
+            fill:'#1a1814','font-family':'Courier New,monospace','font-size':'10','font-weight':'bold'},gActive);
+          // result label
+          txt(`x/(x−1) = ${fmt(tv)}`,{
+            x:(OX-8).toFixed(1),y:(ty(tv)-10).toFixed(1),
+            fill:'#228833','font-family':'Courier New,monospace',
+            'font-size':'10','text-anchor':'end'},gActive);
+        }
+      }
+    }
+
+    // ── Construction annotation ──
+    if(show.labels){
+      const gAnn=el('g',{'font-family':'Georgia,serif','font-size':'9.5',
+        'font-style':'italic',fill:'#6b6356'},gActive);
+      txt('Construction: line through x and hinge (1,1)',{x:12,y:18},gAnn);
+      txt('extended to the y-axis gives x/(x\u22121)',{x:12,y:30},gAnn);
+      txt('Apparatus: both axes, hyperbola, diagonal, straightedge',{x:12,y:42},gAnn);
+    }
+
+    // Readout
+    document.getElementById('rv-x').textContent=x.toFixed(4);
+    document.getElementById('rv-third').textContent=fmt(tv);
+    // Apply twice: x -> tv -> tv/(tv-1) should return x
+    const check=tv/(tv-1);
+    document.getElementById('rv-check').textContent=isFinite(check)?check.toFixed(4):'undef';
+  }
+
+  // Input handling
+  const wrap=document.getElementById('svgwrap');
+  function getX(e){
+    const r=wrap.getBoundingClientRect();
+    const cx=e.touches?e.touches[0].clientX:e.clientX;
+    return wx((cx-r.left)/r.width*VW);
+  }
+  function handle(e){
+    e.preventDefault();
+    let wxi=getX(e);
+    wxi=Math.max(XMIN+0.1, Math.min(XMAX-0.1, wxi));
+    // Skip the singularity at x=1
+    if(Math.abs(wxi-1)<0.08) wxi=wxi<1?0.92:1.08;
+    activeX=wxi;
+    drawActive();
+  }
+  wrap.addEventListener('touchstart',handle,{passive:false});
+  wrap.addEventListener('touchmove',handle,{passive:false});
+  wrap.addEventListener('mousedown',handle);
+  wrap.addEventListener('mousemove',e=>{if(e.buttons)handle(e);});
+
+  drawActive();
+})();
+</script>
+</body>
+</html>
