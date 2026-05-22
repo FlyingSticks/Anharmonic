@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Reciprocal — Harmonic Conjugate Construction</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  background: #f7f4ee;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #1a1814;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 8px;
+  overflow: hidden;
+}
+h1 {
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 1px;
+  flex-shrink: 0;
+}
+.sub {
+  font-style: italic;
+  font-size: 0.74rem;
+  color: #6b6356;
+  text-align: center;
+  margin-bottom: 3px;
+  flex-shrink: 0;
+}
+.svg-wrap {
+  width: 100%;
+  max-width: 760px;
+  flex: 1 1 0;
+  min-height: 0;
+  border: 1px solid #c8c0b0;
+  background: #fdfaf4;
+  box-shadow: 3px 3px 0 #c8c0b0;
+  touch-action: none;
+  cursor: crosshair;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.svg-wrap svg { display: block; width: 100%; height: 100%; }
+.readout {
+  width: 100%; max-width: 760px;
+  flex-shrink: 0;
+  margin-top: 3px;
+  border: 1px solid #c8c0b0;
+  background: #fdfaf4;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+.rc {
+  padding: 4px 6px;
+  border-right: 1px solid #c8c0b0;
+  text-align: center;
+}
+.rc:last-child { border-right: none; }
+.rl { font-size: 0.58rem; color: #6b6356; }
+.rv { font-family: 'Courier New', monospace; font-size: 0.8rem; }
+.controls {
+  width: 100%; max-width: 760px;
+  flex-shrink: 0;
+  margin-top: 3px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 3px;
+}
+.btn {
+  padding: 4px 2px;
+  border: 1px solid #c8c0b0;
+  background: #fdfaf4;
+  font-family: Georgia, serif;
+  font-size: 0.68rem;
+  color: #3a3530;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  box-shadow: 1px 1px 0 #c8c0b0;
+  user-select: none;
+}
+.btn.on { background: #eee8dc; }
+.dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<h1>Reciprocal &mdash; Harmonic Conjugate Construction</h1>
+<p class="sub">x &rarr; 1/x &nbsp;&middot;&nbsp; drag along the base line</p>
+
+<div class="svg-wrap" id="svgwrap">
+  <svg id="mainsvg" viewBox="0 0 760 440" xmlns="http://www.w3.org/2000/svg" style="touch-action:none;"></svg>
+</div>
+
+<div class="readout">
+  <div class="rc"><div class="rl">x</div><div class="rv" id="rv-x" style="color:#1a1814">drag</div></div>
+  <div class="rc"><div class="rl">1/x (result)</div><div class="rv" id="rv-recip" style="color:#2255aa">&mdash;</div></div>
+  <div class="rc"><div class="rl">x &middot; (1/x)</div><div class="rv" id="rv-check" style="color:#228833">&mdash;</div></div>
+  <div class="rc"><div class="rl">cross-ratio</div><div class="rv" id="rv-cr" style="color:#884488">&mdash;</div></div>
+</div>
+
+<div class="controls">
+  <button class="btn on" onclick="tog('quad',this)"><span class="dot" style="background:#c8a84a"></span>Quadrilateral</button>
+  <button class="btn on" onclick="tog('proj',this)"><span class="dot" style="background:#2255aa"></span>Projection lines</button>
+  <button class="btn on" onclick="tog('labels',this)"><span class="dot" style="background:#6b6356"></span>Labels</button>
+  <button class="btn on" onclick="tog('steps',this)"><span class="dot" style="background:#884488"></span>Step letters</button>
+  <button class="btn on" onclick="tog('result',this)"><span class="dot" style="background:#2255aa"></span>Result 1/x</button>
+</div>
+
+<script>
+(function(){
+  const VW=760, VH=440;
+  const NS='http://www.w3.org/2000/svg';
+  const svg=document.getElementById('mainsvg');
+
+  function el(tag,attrs,parent){
+    const e=document.createElementNS(NS,tag);
+    for(const[k,v] of Object.entries(attrs)) e.setAttribute(k,v);
+    if(parent) parent.appendChild(e);
+    return e;
+  }
+  function txt(s,attrs,parent){
+    const e=el('text',attrs,parent); e.textContent=s; return e;
+  }
+
+  let show={quad:true,proj:true,labels:true,steps:true,result:true};
+  window.tog=function(key,btn){
+    show[key]=!show[key];
+    btn.classList.toggle('on',show[key]);
+    drawActive();
+  };
+
+  // Base line: y position and x-axis mapping
+  const BY = 340;           // pixel y of base line
+  const BX0 = 60;           // pixel x of world x = -2
+  const BX1 = VW - 40;      // pixel x of world x = +5
+  const WMIN = -2.0;
+  const WMAX = 5.0;
+  const SX = (BX1-BX0)/(WMAX-WMIN);
+
+  function bx(w){ return BX0 + (w-WMIN)*SX; }  // world -> pixel x on base line
+  function wb(px){ return WMIN + (px-BX0)/SX; } // pixel x -> world
+
+  // Fixed off-line points
+  // P: above the line, roughly above x=1
+  const P = [bx(1.0), 130];
+  // Q: on line through P and bx(0), higher up
+  // Line P to bx(0,BY): parametric
+  // Q is at t=0.55 along that line from P upward
+  function pointOnLine(p1,p2,t){ return [p1[0]+(p2[0]-p1[0])*t, p1[1]+(p2[1]-p1[1])*t]; }
+
+  const B0 = [bx(0), BY];  // base point 0
+  // Q on line P--B0, above the base line
+  const Q = pointOnLine(P, B0, -0.7); // extend beyond P away from base
+
+  // Intersection of two lines defined by two point pairs
+  function intersect(p1,p2,p3,p4){
+    const x1=p1[0],y1=p1[1],x2=p2[0],y2=p2[1];
+    const x3=p3[0],y3=p3[1],x4=p4[0],y4=p4[1];
+    const denom=(x1-x2)*(y3-y4)-(y1-y2)*(x3-x4);
+    if(Math.abs(denom)<0.0001) return null;
+    const t=((x1-x3)*(y3-y4)-(y1-y3)*(x3-x4))/denom;
+    return [x1+t*(x2-x1), y1+t*(y2-y1)];
+  }
+
+  // Extend a line segment for drawing across the canvas
+  function extendLine(p1,p2,margin){
+    margin = margin||20;
+    const dx=p2[0]-p1[0], dy=p2[1]-p1[1];
+    const len=Math.sqrt(dx*dx+dy*dy);
+    if(len<0.001) return [p1,p2];
+    // Find t values where line exits canvas
+    // parametric: p1 + t*(p2-p1)
+    const ts=[];
+    if(Math.abs(dx)>0.001){
+      ts.push((-margin-p1[0])/dx);
+      ts.push((VW+margin-p1[0])/dx);
+    }
+    if(Math.abs(dy)>0.001){
+      ts.push((-margin-p1[1])/dy);
+      ts.push((VH+margin-p1[1])/dy);
+    }
+    ts.sort((a,b)=>a-b);
+    const tmin=ts[0], tmax=ts[ts.length-1];
+    return [
+      [p1[0]+tmin*dx, p1[1]+tmin*dy],
+      [p1[0]+tmax*dx, p1[1]+tmax*dy]
+    ];
+  }
+
+  function lineStr(p1,p2){ return `M${p1[0].toFixed(1)},${p1[1].toFixed(1)} L${p2[0].toFixed(1)},${p2[1].toFixed(1)}`; }
+
+  function dot(g,p,r,fill,stroke){
+    el('circle',{cx:p[0].toFixed(1),cy:p[1].toFixed(1),r:r||4,
+      fill:fill||'#1a1814',stroke:stroke||'#fdfaf4','stroke-width':'1.3'},g);
+  }
+
+  function label(g,p,s,col,dx,dy,anchor){
+    txt(s,{x:(p[0]+(dx||0)).toFixed(1),y:(p[1]+(dy||0)).toFixed(1),
+      fill:col||'#1a1814','font-family':'Georgia,serif','font-size':'11',
+      'font-style':'italic','text-anchor':anchor||'middle'},g);
+  }
+
+  // Arrow marker
+  const defs=el('defs',{},svg);
+  const m=el('marker',{id:'arr',markerWidth:'7',markerHeight:'5',refX:'6',refY:'2.5',orient:'auto'},defs);
+  el('polygon',{points:'0,0 7,2.5 0,5',fill:'#2255aa'},m);
+
+  // Background
+  el('rect',{x:0,y:0,width:VW,height:VH,fill:'#fdfaf4'},svg);
+
+  // Static layer: base line, fixed points
+  const gStatic=el('g',{},svg);
+
+  // Base line
+  el('line',{x1:BX0-10,y1:BY,x2:BX1+10,y2:BY,stroke:'#1a1814','stroke-width':'2.0'},gStatic);
+
+  // Fixed base points: -1, 0, 1
+  const baseFixed=[[-1,'−1'],[0,'0'],[1,'1']];
+  for(const[w,lbl] of baseFixed){
+    const px=bx(w);
+    el('line',{x1:px,y1:BY-5,x2:px,y2:BY+5,stroke:'#1a1814','stroke-width':'1.2'},gStatic);
+    txt(lbl,{x:px,y:BY+18,'text-anchor':'middle',fill:'#1a1814',
+      'font-family':'Georgia,serif','font-size':'12'},gStatic);
+  }
+
+  // Axis end labels
+  txt('←',{x:BX0-8,y:BY+5,fill:'#888','font-size':'14'},gStatic);
+  txt('→',{x:BX1+2,y:BY+5,fill:'#888','font-size':'14'},gStatic);
+
+  // Active layer
+  const gActive=el('g',{},svg);
+
+  let activeX=2.5; // default starting position
+
+  function fmt(v){
+    if(!isFinite(v)||Math.abs(v)>999) return v>0?'+inf':'-inf';
+    return v.toFixed(4);
+  }
+
+  function crossRatio(a,b,c,d){
+    // (c-a)(d-b) / (d-a)(c-b)
+    return ((c-a)*(d-b))/((d-a)*(c-b));
+  }
+
+  function drawActive(){
+    gActive.innerHTML='';
+    const x=activeX;
+    const Bx  = [bx(x),  BY];   // x on base line
+    const Bm1 = [bx(-1), BY];   // -1
+    const B1  = [bx(1),  BY];   // +1
+    const B0_ = [bx(0),  BY];   // 0
+
+    // ── Step 1: Lines from P to base points ──
+    // P·(-1), P·0, P·1, P·x
+    const lines_from_P = [
+      [P, Bm1, '#c8a84a', 'P·(−1)', 0.4],
+      [P, B0_, '#c8a84a', 'P·0',    0.4],
+      [P, B1,  '#c8a84a', 'P·1',    0.4],
+      [P, Bx,  '#2255aa', 'P·x',    0.7],
+    ];
+
+    if(show.proj){
+      for(const[p1,p2,col,lname,op] of lines_from_P){
+        const[ea,eb]=extendLine(p1,p2);
+        el('path',{d:lineStr(ea,eb),fill:'none',stroke:col,
+          'stroke-width':'1.0',opacity:op.toString()},gActive);
+      }
+    }
+
+    // ── Step 2: Q on line P·0, above the base line ──
+    // Q is already fixed above
+
+    // Lines from Q to -1 and +1
+    const QtoM1 = extendLine(Q, Bm1);
+    const Qto1  = extendLine(Q, B1);
+
+    // ── Step 3: R = Q·(-1) ∩ P·x ──
+    const R = intersect(Q, Bm1, P, Bx);
+    // ── Step 3: S = Q·1 ∩ P·x ──
+    const S = intersect(Q, B1, P, Bx);
+
+    if(!R||!S) { return; }
+
+    // ── Step 4: R·1 and S·(-1) ──
+    const Rto1   = extendLine(R, B1);
+    const StoM1  = extendLine(S, Bm1);
+
+    // T = R·1 ∩ S·(-1)
+    const T = intersect(R, B1, S, Bm1);
+    if(!T) return;
+
+    // ── Step 5: Line P·T → hits base line at 1/x ──
+    const PT = extendLine(P, T);
+    const result = intersect(P, T, [BX0, BY], [BX1, BY]);
+    if(!result) return;
+    const recipX = wb(result[0]);
+
+    // Draw Q-lines (quadrilateral structure)
+    if(show.quad){
+      const gQ=el('g',{'stroke-width':'1.1',opacity:'0.6'},gActive);
+      el('path',{d:lineStr(QtoM1[0],QtoM1[1]),fill:'none',stroke:'#c8a84a'},gQ);
+      el('path',{d:lineStr(Qto1[0],Qto1[1]),fill:'none',stroke:'#c8a84a'},gQ);
+      // R·1 and S·(-1)
+      el('path',{d:lineStr(Rto1[0],Rto1[1]),fill:'none',stroke:'#884488','stroke-width':'1.3'},gQ);
+      el('path',{d:lineStr(StoM1[0],StoM1[1]),fill:'none',stroke:'#884488','stroke-width':'1.3'},gQ);
+      // Highlight the quadrilateral edges
+      el('path',{d:`M${Q[0].toFixed(1)},${Q[1].toFixed(1)} L${R[0].toFixed(1)},${R[1].toFixed(1)} L${T[0].toFixed(1)},${T[1].toFixed(1)} L${S[0].toFixed(1)},${S[1].toFixed(1)} Z`,
+        fill:'rgba(200,168,74,0.07)',stroke:'#c8a84a','stroke-width':'0.7','stroke-dasharray':'3,3'},gActive);
+    }
+
+    // ── Result line P·T ──
+    if(show.result){
+      el('path',{d:lineStr(PT[0],PT[1]),fill:'none',stroke:'#2255aa',
+        'stroke-width':'2.2','marker-end':'url(#arr)'},gActive);
+    }
+
+    // ── Dots for all construction points ──
+    // P
+    dot(gActive,P,5,'#1a1814');
+    // Q
+    dot(gActive,Q,4,'#c8a84a');
+    // R
+    dot(gActive,R,4,'#884488');
+    // S
+    dot(gActive,S,4,'#884488');
+    // T
+    dot(gActive,T,5,'#228833','#fdfaf4');
+    // x on base line
+    el('circle',{cx:bx(x).toFixed(1),cy:BY,r:7,fill:'#1a1814',stroke:'#fdfaf4','stroke-width':'1.5'},gActive);
+    // 1/x result on base line
+    if(show.result && isFinite(recipX) && Math.abs(recipX)<10){
+      el('circle',{cx:result[0].toFixed(1),cy:BY,r:6,fill:'#2255aa',stroke:'#fdfaf4','stroke-width':'1.5'},gActive);
+      // tick
+      el('line',{x1:result[0].toFixed(1),y1:(BY-8).toFixed(1),
+        x2:result[0].toFixed(1),y2:(BY+8).toFixed(1),
+        stroke:'#2255aa','stroke-width':'1.5'},gActive);
+    }
+
+    // ── Labels ──
+    if(show.labels){
+      label(gActive,P,'P','#1a1814',-12,-8,'end');
+      label(gActive,Q,'Q','#c8a84a',-10,-6,'end');
+      // x label
+      txt(`x=${x.toFixed(2)}`,{x:bx(x).toFixed(1),y:(BY+22).toFixed(1),
+        'text-anchor':'middle',fill:'#1a1814','font-family':'Courier New,monospace','font-size':'10'},gActive);
+      // 1/x label
+      if(show.result && isFinite(recipX) && Math.abs(recipX)<10){
+        txt(`1/x=${recipX.toFixed(2)}`,{x:result[0].toFixed(1),y:(BY-14).toFixed(1),
+          'text-anchor':'middle',fill:'#2255aa','font-family':'Courier New,monospace','font-size':'10'},gActive);
+      }
+    }
+
+    if(show.steps){
+      label(gActive,R,'R','#884488',8,-4,'start');
+      label(gActive,S,'S','#884488',8,-4,'start');
+      label(gActive,T,'T','#228833',8,-4,'start');
+    }
+
+    // ── Step annotations ──
+    if(show.labels){
+      const gAnn=el('g',{'font-family':'Georgia,serif','font-size':'9',
+        'font-style':'italic',fill:'#6b6356'},gActive);
+      if(show.steps){
+        txt('① P·x',{x:(P[0]+8).toFixed(1),y:(P[1]+14).toFixed(1)},gAnn);
+        txt('② Q·(−1) ∩ P·x = R',{x:'12',y:'22'},gAnn);
+        txt('③ Q·1 ∩ P·x = S',{x:'12',y:'34'},gAnn);
+        txt('④ R·1 ∩ S·(−1) = T',{x:'12',y:'46'},gAnn);
+        txt('⑤ P·T → base line = 1/x',{x:'12',y:'58'},gAnn);
+      }
+    }
+
+    // Readout
+    document.getElementById('rv-x').textContent=x.toFixed(4);
+    document.getElementById('rv-recip').textContent=isFinite(recipX)?recipX.toFixed(4):'undef';
+    document.getElementById('rv-check').textContent=isFinite(recipX)?(x*recipX).toFixed(4):'—';
+    const cr=crossRatio(-1,1,x,recipX);
+    document.getElementById('rv-cr').textContent=isFinite(cr)?cr.toFixed(4):'—';
+  }
+
+  // Input
+  const wrap=document.getElementById('svgwrap');
+  function getX(e){
+    const r=wrap.getBoundingClientRect();
+    const cx=e.touches?e.touches[0].clientX:e.clientX;
+    return wb((cx-r.left)/r.width*VW);
+  }
+  function handle(e){
+    e.preventDefault();
+    let wx=getX(e);
+    wx=Math.max(WMIN+0.1, Math.min(WMAX-0.1, wx));
+    if(Math.abs(wx)<0.12) wx=wx<0?-0.12:0.12;
+    if(Math.abs(wx-1)<0.08) wx=wx<1?0.92:1.08;
+    if(Math.abs(wx+1)<0.08) wx=wx<-1?-1.08:-0.92;
+    activeX=wx;
+    drawActive();
+  }
+  wrap.addEventListener('touchstart',handle,{passive:false});
+  wrap.addEventListener('touchmove',handle,{passive:false});
+  wrap.addEventListener('mousedown',handle);
+  wrap.addEventListener('mousemove',e=>{if(e.buttons)handle(e);});
+
+  drawActive();
+})();
+</script>
+</body>
+</html>
