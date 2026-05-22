@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Six Transformations — Global Behavior</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  background: #f7f4ee;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #1a1814;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 8px;
+  overflow: hidden;
+}
+h1 {
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 2px;
+  flex-shrink: 0;
+}
+.sub {
+  font-style: italic;
+  font-size: 0.75rem;
+  color: #6b6356;
+  text-align: center;
+  margin-bottom: 3px;
+  flex-shrink: 0;
+}
+.svg-wrap {
+  width: 100%;
+  max-width: 760px;
+  flex: 1 1 0;
+  min-height: 0;
+  border: 1px solid #c8c0b0;
+  background: #fdfaf4;
+  box-shadow: 3px 3px 0 #c8c0b0;
+  touch-action: none;
+  cursor: crosshair;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.svg-wrap svg { display: block; width: 100%; height: 100%; }
+.readout {
+  width: 100%; max-width: 760px;
+  flex-shrink: 0;
+  margin-top: 3px;
+  border: 1px solid #c8c0b0;
+  background: #fdfaf4;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+.rc {
+  padding: 3px 3px;
+  border-right: 1px solid #c8c0b0;
+  text-align: center;
+}
+.rc:last-child { border-right: none; }
+.rl { font-size: 0.55rem; color: #6b6356; white-space: nowrap; }
+.rv { font-family: 'Courier New', monospace; font-size: 0.74rem; }
+.controls {
+  width: 100%; max-width: 760px;
+  flex-shrink: 0;
+  margin-top: 3px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 3px;
+}
+.btn {
+  padding: 4px 2px;
+  border: 1px solid #c8c0b0;
+  background: #fdfaf4;
+  font-family: Georgia, serif;
+  font-size: 0.68rem;
+  color: #3a3530;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  box-shadow: 1px 1px 0 #c8c0b0;
+  user-select: none;
+}
+.btn.on { background: #eee8dc; }
+.dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<h1>Six Transformations &mdash; Global Behavior</h1>
+<p class="sub">Full real line &nbsp;&middot;&nbsp; drag anywhere on the diagram</p>
+
+<div class="svg-wrap" id="svgwrap">
+<svg id="mainsvg" viewBox="0 0 760 460" xmlns="http://www.w3.org/2000/svg" style="touch-action:none;"></svg>
+</div>
+
+<div class="readout">
+  <div class="rc"><div class="rl">x</div><div class="rv" style="color:#888" id="rv-id">drag</div></div>
+  <div class="rc"><div class="rl">x (id)</div><div class="rv" style="color:#888" id="rv-id2">&mdash;</div></div>
+  <div class="rc"><div class="rl">1&minus;x</div><div class="rv" style="color:#aa3300" id="rv-comp">&mdash;</div></div>
+  <div class="rc"><div class="rl">1/x</div><div class="rv" style="color:#2255aa" id="rv-recip">&mdash;</div></div>
+  <div class="rc"><div class="rl">x/(x&minus;1)</div><div class="rv" style="color:#228833" id="rv-third">&mdash;</div></div>
+  <div class="rc"><div class="rl">1/(1&minus;x)</div><div class="rv" style="color:#884488" id="rv-reach">&mdash;</div></div>
+  <div class="rc"><div class="rl">(x&minus;1)/x</div><div class="rv" style="color:#cc8800" id="rv-turn">&mdash;</div></div>
+</div>
+
+<div class="controls">
+  <button class="btn on" onclick="tog('id',this)"><span class="dot" style="background:#888"></span>Identity</button>
+  <button class="btn on" onclick="tog('comp',this)"><span class="dot" style="background:#aa3300"></span>Complement</button>
+  <button class="btn on" onclick="tog('recip',this)"><span class="dot" style="background:#2255aa"></span>Reciprocal</button>
+  <button class="btn on" onclick="tog('third',this)"><span class="dot" style="background:#228833"></span>Third</button>
+  <button class="btn on" onclick="tog('reach',this)"><span class="dot" style="background:#884488"></span>Reach</button>
+  <button class="btn on" onclick="tog('turn',this)"><span class="dot" style="background:#cc8800"></span>Turn</button>
+</div>
+
+<script>
+(function(){
+  const VW=760, VH=460;
+  // Coordinate ranges — extended into negative territory
+  const XMIN=-3.2, XMAX=5.2, YMIN=-3.2, YMAX=5.2;
+  // Origin pixel position
+  const OX = VW*(0-XMIN)/(XMAX-XMIN);
+  const OY = VH*(YMAX-0)/(YMAX-YMIN);
+  const SX = VW/(XMAX-XMIN);
+  const SY = VH/(YMAX-YMIN);
+
+  function tx(x){ return OX + x*SX; }
+  function ty(y){ return OY - y*SY; }
+  function fx(px){ return (px-OX)/SX; }
+
+  const NS='http://www.w3.org/2000/svg';
+  const svg=document.getElementById('mainsvg');
+
+  function el(tag,attrs,parent){
+    const e=document.createElementNS(NS,tag);
+    for(const[k,v] of Object.entries(attrs)) e.setAttribute(k,v);
+    if(parent) parent.appendChild(e);
+    return e;
+  }
+  function txt(s,attrs,parent){
+    const e=el('text',attrs,parent);
+    e.textContent=s; return e;
+  }
+
+  let show={id:true,comp:true,recip:true,third:true,reach:true,turn:true};
+  let activeX=null;
+
+  window.tog=function(key,btn){
+    show[key]=!show[key];
+    btn.classList.toggle('on',show[key]);
+    drawActive();
+  };
+
+  // Arrow markers
+  const defs=el('defs',{},svg);
+  for(const[id,col] of [
+    ['arr-id','#888'],['arr-comp','#aa3300'],['arr-recip','#2255aa'],
+    ['arr-third','#228833'],['arr-reach','#884488'],['arr-turn','#cc8800'],
+    ['arr-dark','#1a1814']
+  ]){
+    const m=el('marker',{id,markerWidth:'8',markerHeight:'6',refX:'7',refY:'3',orient:'auto'},defs);
+    el('polygon',{points:'0,0 8,3 0,6',fill:col},m);
+  }
+  // Dashed arrowhead markers
+  for(const[id,col] of [
+    ['arr-comp-d','#aa3300'],['arr-recip-d','#2255aa'],
+    ['arr-turn-d','#cc8800']
+  ]){
+    const m=el('marker',{id,markerWidth:'8',markerHeight:'6',refX:'7',refY:'3',orient:'auto'},defs);
+    el('polygon',{points:'0,0 8,3 0,6',fill:'none',stroke:col,'stroke-width':'1.5'},m);
+  }
+
+  // Background
+  el('rect',{x:0,y:0,width:VW,height:VH,fill:'#fdfaf4'},svg);
+
+  // Grid
+  const gGrid=el('g',{stroke:'#e4ddd0','stroke-width':'0.3'},svg);
+  for(let i=Math.ceil(XMIN);i<=Math.floor(XMAX);i++)
+    el('line',{x1:tx(i),y1:0,x2:tx(i),y2:VH},gGrid);
+  for(let i=Math.ceil(YMIN);i<=Math.floor(YMAX);i++)
+    el('line',{x1:0,y1:ty(i),x2:VW,y2:ty(i)},gGrid);
+
+  // Singularity zones — shaded bands at x=0 and x=1
+  el('rect',{x:tx(-0.06),y:0,width:tx(0.06)-tx(-0.06),height:VH,
+    fill:'rgba(200,180,160,0.18)'},svg);
+  el('rect',{x:tx(0.94),y:0,width:tx(1.06)-tx(0.94),height:VH,
+    fill:'rgba(200,180,160,0.18)'},svg);
+
+  // Unit square [0,1]
+  el('rect',{x:tx(0),y:ty(1),width:SX,height:SY,
+    fill:'rgba(34,136,51,0.04)',stroke:'#228833','stroke-width':'0.5','stroke-dasharray':'3,2'},svg);
+
+  // Hyperbola xy=1 background
+  let hd='';
+  for(let xi=0.18;xi<=XMAX-0.05;xi+=0.012){
+    const yi=1/xi; if(yi>YMAX||yi<YMIN) continue;
+    hd+=hd===''?`M${tx(xi).toFixed(1)},${ty(yi).toFixed(1)}`:`L${tx(xi).toFixed(1)},${ty(yi).toFixed(1)}`;
+  }
+  // Negative branch
+  let hd2='';
+  for(let xi=XMIN+0.05;xi<=-0.18;xi+=0.012){
+    const yi=1/xi; if(yi>YMAX||yi<YMIN) continue;
+    hd2+=hd2===''?`M${tx(xi).toFixed(1)},${ty(yi).toFixed(1)}`:`L${tx(xi).toFixed(1)},${ty(yi).toFixed(1)}`;
+  }
+  el('path',{d:hd,fill:'none',stroke:'#b0a090','stroke-width':'0.8',opacity:'0.35'},svg);
+  if(hd2) el('path',{d:hd2,fill:'none',stroke:'#b0a090','stroke-width':'0.8',opacity:'0.25','stroke-dasharray':'4,3'},svg);
+
+  // Diagonal x=y
+  el('line',{x1:tx(XMIN),y1:ty(YMIN),x2:tx(Math.min(XMAX,YMAX)),y2:ty(Math.min(XMAX,YMAX)),
+    stroke:'#888','stroke-width':'1.0',opacity:'0.4','stroke-dasharray':'6,3'},svg);
+
+  // Axes
+  el('line',{x1:0,y1:OY,x2:VW-8,y2:OY,stroke:'#1a1814','stroke-width':'1.8','marker-end':'url(#arr-dark)'},svg);
+  el('line',{x1:OX,y1:VH,x2:OX,y2:8,stroke:'#1a1814','stroke-width':'1.8','marker-end':'url(#arr-dark)'},svg);
+
+  // Ticks & labels
+  const gT=el('g',{stroke:'#1a1814','stroke-width':'0.8'},svg);
+  const gN=el('g',{fill:'#3a3530','font-family':'Georgia,serif','font-size':'10'},svg);
+  for(let i=Math.ceil(XMIN);i<=Math.floor(XMAX);i++){
+    if(i===0) continue;
+    el('line',{x1:tx(i),y1:OY-3,x2:tx(i),y2:OY+3},gT);
+    txt(String(i),{x:tx(i),y:OY+13,'text-anchor':'middle'},gN);
+  }
+  for(let i=Math.ceil(YMIN);i<=Math.floor(YMAX);i++){
+    if(i===0) continue;
+    el('line',{x1:OX-3,y1:ty(i),x2:OX+3,y2:ty(i)},gT);
+    txt(String(i),{x:OX-5,y:ty(i)+4,'text-anchor':'end'},gN);
+  }
+  // Origin
+  txt('0',{x:OX-6,y:OY+13,'text-anchor':'end',fill:'#3a3530','font-family':'Georgia,serif','font-size':'10'},svg);
+
+  // Axis labels
+  txt('x',{x:VW-10,y:OY-6,fill:'#1a1814','font-family':'Georgia,serif','font-size':'12','font-style':'italic'},svg);
+  txt('y',{x:OX+5,y:12,fill:'#1a1814','font-family':'Georgia,serif','font-size':'12','font-style':'italic'},svg);
+
+  // Singularity labels
+  const gSing=el('g',{fill:'#b0a090','font-family':'Georgia,serif','font-size':'8','font-style':'italic'},svg);
+  txt('x=0',{x:tx(0),y:14,'text-anchor':'middle'},gSing);
+  txt('x=1',{x:tx(1),y:14,'text-anchor':'middle'},gSing);
+
+  // Fixed point markers (permanent)
+  const fixedPts=[
+    [0.5,OY,'#aa3300'],[1,OY,'#2255aa'],[-1,OY,'#2255aa'],[0,OY,'#228833'],[2,OY,'#228833']
+  ];
+  for(const[xv,yv,col] of fixedPts)
+    el('circle',{cx:tx(xv),cy:yv,r:3,fill:col},svg);
+
+  // Active layer
+  const gActive=el('g',{},svg);
+
+  function fmt(v){
+    if(!isFinite(v)||Math.abs(v)>99) return v>0?'+inf':'-inf';
+    return v.toFixed(3);
+  }
+
+  // Clamp a value to the visible range for display purposes
+  function clampY(v){ return Math.max(YMIN+0.1, Math.min(YMAX-0.1, v)); }
+  function inView(v){ return isFinite(v)&&v>YMIN&&v<YMAX; }
+  function inXView(v){ return isFinite(v)&&v>XMIN&&v<XMAX; }
+
+  // Draw a capped arc above the axis from x1 to x2
+  // Cap height so very wide arcs don't fly off screen
+  function arcAbove(g, x1, x2, col, dashed){
+    if(!inXView(x1)||!inXView(x2)) return;
+    const px1=tx(x1), px2=tx(x2);
+    const mid=(px1+px2)/2;
+    const span=Math.abs(px2-px1);
+    const maxH=SY*1.6; // max arc height in pixels
+    const h=Math.min(span*0.42, maxH);
+    const cpy=OY-h;
+    const d=`M${px1.toFixed(1)},${(OY-2).toFixed(1)} Q${mid.toFixed(1)},${cpy.toFixed(1)} ${px2.toFixed(1)},${(OY-2).toFixed(1)}`;
+    el('path',{d,fill:'none',stroke:col,'stroke-width':'2.0',
+      'stroke-dasharray':dashed?'5,3':'none',
+      'marker-end':dashed?`url(#arr-${col==='#aa3300'?'comp':'turn'}-d)`:`url(#arr-${col==='#aa3300'?'comp':'turn'})`},g);
+  }
+
+  // Draw a capped arc below the axis from x1 to x2
+  function arcBelow(g, x1, x2, col, dashed){
+    if(!inXView(x1)||!inXView(x2)) return;
+    const px1=tx(x1), px2=tx(x2);
+    const mid=(px1+px2)/2;
+    const span=Math.abs(px2-px1);
+    const maxH=SY*1.6;
+    const h=Math.min(span*0.42, maxH);
+    const cpy=OY+h;
+    const d=`M${px1.toFixed(1)},${(OY+2).toFixed(1)} Q${mid.toFixed(1)},${cpy.toFixed(1)} ${px2.toFixed(1)},${(OY+2).toFixed(1)}`;
+    el('path',{d,fill:'none',stroke:col,'stroke-width':'2.0',
+      'stroke-dasharray':dashed?'5,3':'none',
+      'marker-end':dashed?'url(#arr-recip-d)':'url(#arr-recip)'},g);
+  }
+
+  // Draw line from axis point to y-axis
+  function lineToY(g, xv, yv, col, dashed){
+    if(!inView(yv)) return;
+    const d=`M${tx(xv).toFixed(1)},${OY} L${tx(0).toFixed(1)},${ty(yv).toFixed(1)}`;
+    el('path',{d,fill:'none',stroke:col,'stroke-width':'2.1',
+      'stroke-dasharray':dashed?'5,3':'none',opacity:'0.9'},g);
+    // endpoint dot
+    el('circle',{cx:tx(0).toFixed(1),cy:ty(yv).toFixed(1),r:5,
+      fill:col,stroke:'#fdfaf4','stroke-width':'1.3'},g);
+    // tick on y-axis
+    el('line',{x1:tx(0)-10,y1:ty(yv).toFixed(1),x2:tx(0)+3,y2:ty(yv).toFixed(1),
+      stroke:col,'stroke-width':'0.8','stroke-dasharray':'2,2'},g);
+  }
+
+  // Endpoint dot on axis
+  function axisDot(g,xv,col){
+    if(!inXView(xv)) return;
+    el('circle',{cx:tx(xv).toFixed(1),cy:OY,r:5.5,fill:col,stroke:'#fdfaf4','stroke-width':'1.3'},g);
+  }
+
+  // Label above or below a point
+  function label(g,xv,yIsAxis,val,name,col,above){
+    const cx=inXView(xv)?tx(xv):null;
+    if(!cx) return;
+    const cy=yIsAxis?OY:(inView(val)?ty(val):null);
+    if(!cy&&yIsAxis===false) return;
+    const baseY=yIsAxis?(above?OY-42:OY+52):cy+(above?-14:14);
+    txt(fmt(val),{x:cx,y:baseY,fill:col,'font-family':'Courier New,monospace','font-size':'9','text-anchor':'middle'},g);
+    txt(name,{x:cx,y:baseY-(above?12:-12),fill:col,'font-family':'Georgia,serif','font-size':'8','font-style':'italic','text-anchor':'middle'},g);
+  }
+
+  // Y-axis label (left side)
+  function yLabel(g,yv,val,name,col,left){
+    if(!inView(yv)) return;
+    const x=left?tx(0)-14:tx(0)+6;
+    txt(fmt(val),{x,y:ty(yv)+4,fill:col,'font-family':'Courier New,monospace','font-size':'9','text-anchor':left?'end':'start'},g);
+  }
+
+  function drawActive(){
+    gActive.innerHTML='';
+    if(activeX===null) return;
+    const x=activeX;
+    const cv=1-x;
+    const rv=1/x;
+    const tv=x/(x-1);
+    const pv=1/(1-x);
+    const uv=(x-1)/x;
+
+    // ── x dot ──
+    el('circle',{cx:tx(x).toFixed(1),cy:OY,r:7,fill:'#1a1814',stroke:'#fdfaf4','stroke-width':'1.5'},gActive);
+    txt(`x=${x.toFixed(2)}`,{x:(tx(x)+9).toFixed(1),y:OY-12,
+      fill:'#1a1814','font-family':'Courier New,monospace','font-size':'10','font-weight':'bold'},gActive);
+
+    // ── Identity: dot on diagonal ──
+    if(show.id && inView(x) && inXView(x)){
+      el('circle',{cx:tx(x).toFixed(1),cy:ty(x).toFixed(1),r:5,
+        fill:'#888',stroke:'#fdfaf4','stroke-width':'1.3'},gActive);
+      el('line',{x1:tx(x).toFixed(1),y1:OY,x2:tx(x).toFixed(1),y2:ty(x).toFixed(1),
+        stroke:'#888','stroke-width':'1','stroke-dasharray':'3,3'},gActive);
+    }
+
+    // ── Complement: arc above axis, x -> 1-x ──
+    // Works for all x; output may be negative (off-axis direction)
+    if(show.comp){
+      if(inXView(cv)){
+        // Both x and 1-x on screen: draw arc above
+        arcAbove(gActive,x,cv,'#aa3300',false);
+        axisDot(gActive,cv,'#aa3300');
+        // Offset label up or down to avoid collision
+        const above = x > 0.5;
+        label(gActive,cv,true,cv,'1-x','#aa3300',above);
+      }
+    }
+
+    // ── Reciprocal: arc below axis, x -> 1/x ──
+    if(show.recip && isFinite(rv)){
+      if(inXView(rv) && Math.sign(rv)===Math.sign(x)){
+        // Same-sign reciprocal — arc below
+        arcBelow(gActive,x,rv,'#2255aa',false);
+        axisDot(gActive,rv,'#2255aa');
+        label(gActive,rv,true,rv,'1/x','#2255aa',false);
+      } else if(inXView(rv)){
+        // Cross-sign (shouldn't happen for real reciprocal but be safe)
+        arcBelow(gActive,x,rv,'#2255aa',true);
+        axisDot(gActive,rv,'#2255aa');
+      }
+    }
+
+    // ── Third: x -> x/(x-1), line to y-axis ──
+    // Positive output for x>1 (y in (1,inf))
+    // Output in (0,1) for x<0
+    // Negative output for x in (0,1) — skip (near singularity at 1)
+    if(show.third && isFinite(tv)){
+      if(inView(tv)){
+        lineToY(gActive,x,tv,'#228833',false);
+        yLabel(gActive,tv,tv,'x/(x-1)','#228833',true);
+      }
+    }
+
+    // ── Reach: x -> 1/(1-x), line to y-axis ──
+    // Positive for x<1, negative for x>1 (goes below origin on y-axis)
+    if(show.reach && isFinite(pv)){
+      if(inView(pv)){
+        lineToY(gActive,x,pv,'#884488',false);
+        // Offset label if close to third
+        const off=(inView(tv)&&Math.abs(pv-tv)<0.5)?16:0;
+        const cx2=tx(0)-(14+off);
+        txt(fmt(pv),{x:cx2,y:ty(pv)+4,fill:'#884488','font-family':'Courier New,monospace','font-size':'9','text-anchor':'end'},gActive);
+      }
+    }
+
+    // ── Turn: x -> (x-1)/x, arc above for x>1 and x<0 ──
+    // x>1: output in (0,1) — arc above, rightward
+    // x<0: output >1 — arc above, rightward (longer)
+    // x in (0,1): output negative — arc below, dashed
+    if(show.turn && isFinite(uv)){
+      if(x>1.06 && inXView(uv) && uv>0 && uv<1){
+        arcAbove(gActive,x,uv,'#cc8800',false);
+        axisDot(gActive,uv,'#cc8800');
+        label(gActive,uv,true,uv,'(x-1)/x','#cc8800',true);
+      } else if(x<-0.06 && inXView(uv) && uv>1){
+        arcAbove(gActive,x,uv,'#cc8800',false);
+        axisDot(gActive,uv,'#cc8800');
+        label(gActive,uv,true,uv,'(x-1)/x','#cc8800',true);
+      } else if(x>0.06 && x<0.94 && inXView(uv) && uv<0){
+        // Output negative — dashed arc below to negative x-axis
+        arcBelow(gActive,x,uv,'#cc8800',true);
+        axisDot(gActive,uv,'#cc8800');
+        label(gActive,uv,true,uv,'(x-1)/x','#cc8800',false);
+      }
+    }
+
+    // ── Readout ──
+    document.getElementById('rv-id').textContent=x.toFixed(4);
+    document.getElementById('rv-id2').textContent=x.toFixed(4);
+    document.getElementById('rv-comp').textContent=fmt(cv);
+    document.getElementById('rv-recip').textContent=isFinite(rv)?fmt(rv):'undef';
+    document.getElementById('rv-third').textContent=isFinite(tv)?fmt(tv):'undef';
+    document.getElementById('rv-reach').textContent=isFinite(pv)?fmt(pv):'undef';
+    document.getElementById('rv-turn').textContent=isFinite(uv)?fmt(uv):'undef';
+  }
+
+  // ── Input handling ──
+  const wrap=document.getElementById('svgwrap');
+
+  function getX(e){
+    const r=wrap.getBoundingClientRect();
+    const cx=e.touches?e.touches[0].clientX:e.clientX;
+    return fx((cx-r.left)/r.width*VW);
+  }
+
+  function handle(e){
+    e.preventDefault();
+    let wx=getX(e);
+    // Clamp to visible range
+    wx=Math.max(XMIN+0.1, Math.min(XMAX-0.1, wx));
+    // Skip singularity zones
+    if(Math.abs(wx)<0.07) wx=wx<0?-0.07:0.07;
+    if(Math.abs(wx-1)<0.07) wx=wx<1?0.93:1.07;
+    activeX=wx;
+    drawActive();
+  }
+
+  wrap.addEventListener('touchstart',handle,{passive:false});
+  wrap.addEventListener('touchmove',handle,{passive:false});
+  wrap.addEventListener('mousedown',handle);
+  wrap.addEventListener('mousemove',e=>{if(e.buttons)handle(e);});
+
+})();
+</script>
+</body>
+</html>
