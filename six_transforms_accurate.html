@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Six Transformations</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: #f7f4ee;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #1a1814;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 12px 40px;
+}
+
+h1 {
+  font-size: 1.1rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 3px;
+}
+
+.subtitle {
+  font-style: italic;
+  font-size: 0.88rem;
+  color: #6b6356;
+  text-align: center;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+.svg-wrap {
+  width: 100%;
+  max-width: 700px;
+  border: 1px solid #c8c0b0;
+  background: #fdfaf4;
+  box-shadow: 4px 4px 0 #c8c0b0;
+  touch-action: none;
+  cursor: crosshair;
+}
+.svg-wrap svg { display: block; width: 100%; height: auto; }
+
+.readout {
+  width: 100%;
+  max-width: 700px;
+  margin-top: 10px;
+  border: 1px solid #c8c0b0;
+  background: #fdfaf4;
+  box-shadow: 2px 2px 0 #c8c0b0;
+}
+.readout-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  border-bottom: 1px solid #c8c0b0;
+}
+.readout-row:last-child { border-bottom: none; }
+.readout-cell {
+  padding: 7px 10px;
+  border-right: 1px solid #c8c0b0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.readout-cell:last-child { border-right: none; }
+.r-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.r-label { font-size: 0.7rem; color: #6b6356; font-style: italic; min-width: 68px; }
+.r-value { font-family: 'Courier New', monospace; font-size: 0.88rem; }
+
+.slider-wrap {
+  width: 100%;
+  max-width: 700px;
+  margin-top: 10px;
+  padding: 12px 16px;
+  border: 1px solid #c8c0b0;
+  background: #fdfaf4;
+  box-shadow: 2px 2px 0 #c8c0b0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.slider-wrap label { font-style: italic; font-size: 0.88rem; color: #6b6356; white-space: nowrap; }
+.slider-wrap input[type=range] { flex: 1; accent-color: #5B2D8E; }
+.slider-wrap .xval { font-family: 'Courier New', monospace; font-size: 0.95rem; min-width: 60px; text-align: right; }
+
+.note {
+  width: 100%;
+  max-width: 700px;
+  margin-top: 10px;
+  padding: 10px 14px;
+  font-style: italic;
+  font-size: 0.82rem;
+  color: #6b6356;
+  text-align: center;
+  line-height: 1.5;
+  border: 1px solid #c8c0b0;
+  background: #fdfaf4;
+}
+</style>
+</head>
+<body>
+
+<h1>Six Transformations</h1>
+<p class="subtitle">
+  All six elements of the anharmonic group acting on x simultaneously.<br>
+  The projective line shown as a circle. Special values at their exact positions under &theta; = (&pi; &minus; 2&thinsp;arctan x) &middot; 180/&pi;.
+</p>
+
+<div class="svg-wrap" id="svgwrap">
+<svg id="mainsvg" viewBox="0 0 700 560" xmlns="http://www.w3.org/2000/svg">
+</svg>
+</div>
+
+<div class="readout">
+  <div class="readout-row">
+    <div class="readout-cell">
+      <div class="r-dot" style="background:#888"></div>
+      <span class="r-label">x (identity)</span>
+      <span class="r-value" id="rv-id">—</span>
+    </div>
+    <div class="readout-cell">
+      <div class="r-dot" style="background:#aa3300"></div>
+      <span class="r-label">1 &minus; x</span>
+      <span class="r-value" id="rv-comp">—</span>
+    </div>
+    <div class="readout-cell">
+      <div class="r-dot" style="background:#2255aa"></div>
+      <span class="r-label">1/x</span>
+      <span class="r-value" id="rv-recip">—</span>
+    </div>
+  </div>
+  <div class="readout-row">
+    <div class="readout-cell">
+      <div class="r-dot" style="background:#228833"></div>
+      <span class="r-label">x/(x&minus;1)</span>
+      <span class="r-value" id="rv-third">—</span>
+    </div>
+    <div class="readout-cell">
+      <div class="r-dot" style="background:#884488"></div>
+      <span class="r-label">1/(1&minus;x)</span>
+      <span class="r-value" id="rv-reach">—</span>
+    </div>
+    <div class="readout-cell">
+      <div class="r-dot" style="background:#cc8800"></div>
+      <span class="r-label">(x&minus;1)/x</span>
+      <span class="r-value" id="rv-turn">—</span>
+    </div>
+  </div>
+</div>
+
+<div class="slider-wrap">
+  <label>x =</label>
+  <input type="range" id="xslider" min="-500" max="500" value="0" step="1">
+  <span class="xval" id="xdisp">1.000</span>
+</div>
+
+<div class="note">
+  Drag the slider or touch the circle to move x.<br>
+  The six special values are not evenly spaced — that is the honest geometry of the stereographic projection.<br>
+  <span style="color:#884488">Purple</span> and <span style="color:#cc8800">gold</span> arrows are the 3-cycles; they curve through the interior.
+  The complex fixed points e<sup>&plusmn;i&pi;/3</sup> sit at the center, off the real line.
+</div>
+
+<script>
+(function() {
+
+const NS  = 'http://www.w3.org/2000/svg';
+const svg = document.getElementById('mainsvg');
+const VW  = 700, VH = 560;
+const CX  = VW / 2, CY = VH / 2 - 10;
+const R   = 190;
+
+// ── Angle mapping: θ = (π − 2·arctan(x)) · 180/π ──
+// ∞ → 0°, 1 → 90°, ½ → 126.87°, 0 → 180°, −1 → 270°, 2 → 53.13°
+function valToAngle(v) {
+  if (v === Infinity || v > 1e9)  return 0;
+  if (v === -Infinity || v < -1e9) return 360;
+  return ((Math.PI - 2 * Math.atan(v)) * 180 / Math.PI + 360) % 360;
+}
+
+function angleToXY(deg) {
+  const rad = deg * Math.PI / 180;
+  return [CX + R * Math.cos(rad), CY - R * Math.sin(rad)];
+}
+
+function valToXY(v) {
+  return angleToXY(valToAngle(v));
+}
+
+// Exact angles for the six special values
+const SPECIAL = [
+  { val: Infinity, label: '∞',  angle:   0.00 },
+  { val: 2,        label: '2',  angle:  53.13 },
+  { val: 1,        label: '1',  angle:  90.00 },
+  { val: 0.5,      label: '½',  angle: 126.87 },
+  { val: 0,        label: '0',  angle: 180.00 },
+  { val: -1,       label: '−1', angle: 270.00 },
+];
+
+// Colors
+const COL = {
+  id:    '#888888',
+  comp:  '#aa3300',
+  recip: '#2255aa',
+  third: '#228833',
+  reach: '#884488',
+  turn:  '#cc8800',
+};
+
+// The six transformations
+const TRANSFORMS = [
+  { key:'id',    fn: x => x,          label:'x',        name:'Identity',   col:COL.id,    order:1 },
+  { key:'comp',  fn: x => 1-x,        label:'1−x',      name:'Complement', col:COL.comp,  order:2 },
+  { key:'recip', fn: x => 1/x,        label:'1/x',      name:'Reciprocal', col:COL.recip, order:2 },
+  { key:'third', fn: x => x/(x-1),    label:'x/(x−1)',  name:'Third',      col:COL.third, order:2 },
+  { key:'reach', fn: x => 1/(1-x),    label:'1/(1−x)',  name:'Reach',      col:COL.reach, order:3 },
+  { key:'turn',  fn: x => (x-1)/x,    label:'(x−1)/x', name:'Turn',       col:COL.turn,  order:3 },
+];
+
+function el(tag, attrs, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k,v] of Object.entries(attrs)) e.setAttribute(k,v);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function txt(s, attrs, parent) {
+  const e = el('text', attrs, parent);
+  e.textContent = s;
+  return e;
+}
+
+function buildBase() {
+  svg.innerHTML = '';
+
+  // Arrowhead markers
+  const defs = el('defs', {}, svg);
+  for (const [key, col] of Object.entries(COL)) {
+    const m = el('marker', {
+      id:'arr-'+key, markerWidth:'8', markerHeight:'6',
+      refX:'7', refY:'3', orient:'auto'
+    }, defs);
+    el('polygon', {points:'0,0 8,3 0,6', fill:col}, m);
+  }
+
+  // Background
+  el('rect', {x:0,y:0,width:VW,height:VH,fill:'#fdfaf4'}, svg);
+
+  // Circle
+  el('circle', {cx:CX,cy:CY,r:R,
+    fill:'rgba(240,235,225,0.4)',
+    stroke:'#c8c0b0','stroke-width':'1.5'}, svg);
+
+  // Tick marks at exact positions of special values — small radial lines
+  for (const sp of SPECIAL) {
+    const rad = sp.angle * Math.PI / 180;
+    const x1 = CX + (R-8)  * Math.cos(rad);
+    const y1 = CY - (R-8)  * Math.sin(rad);
+    const x2 = CX + (R+4)  * Math.cos(rad);
+    const y2 = CY - (R+4)  * Math.sin(rad);
+    el('line', {x1,y1,x2,y2,stroke:'#888','stroke-width':'1'}, svg);
+  }
+
+  // Special value dots and labels at exact computed positions
+  for (const sp of SPECIAL) {
+    const [sx, sy] = angleToXY(sp.angle);
+    el('circle', {cx:sx,cy:sy,r:5.5,
+      fill:'#1a1814',stroke:'#fdfaf4','stroke-width':'1.5'}, svg);
+    const rad = sp.angle * Math.PI / 180;
+    const lx  = CX + (R+26) * Math.cos(rad);
+    const ly  = CY - (R+26) * Math.sin(rad);
+    txt(sp.label, {
+      x:lx, y:ly+4,
+      fill:'#1a1814','font-family':'Georgia,serif',
+      'font-size':'15','font-weight':'bold',
+      'text-anchor':'middle'
+    }, svg);
+  }
+
+  // Angle annotations for special values (small, grey)
+  const angleLabels = [
+    {angle:0,    label:'0°',    offset:[14,-6]},
+    {angle:53.13,label:'53°',   offset:[10,-10]},
+    {angle:90,   label:'90°',   offset:[0,-14]},
+    {angle:126.87,label:'127°', offset:[-10,-10]},
+    {angle:180,  label:'180°',  offset:[-18,-2]},
+    {angle:270,  label:'270°',  offset:[0,14]},
+  ];
+  for (const al of angleLabels) {
+    const rad = al.angle * Math.PI / 180;
+    const ax  = CX + (R-28) * Math.cos(rad) + al.offset[0];
+    const ay  = CY - (R-28) * Math.sin(rad) + al.offset[1];
+    txt(al.label, {
+      x:ax, y:ay,
+      fill:'#aaa','font-family':'Courier New,monospace',
+      'font-size':'8.5','text-anchor':'middle'
+    }, svg);
+  }
+
+  // Center: complex fixed points
+  el('circle', {cx:CX,cy:CY,r:5,fill:'#cc2244',opacity:'0.9'}, svg);
+  txt('e^(±iπ/3)', {
+    x:CX, y:CY-10,
+    fill:'#cc2244','font-family':'Georgia,serif',
+    'font-size':'10','font-style':'italic',
+    'text-anchor':'middle'
+  }, svg);
+  txt('fixed points of 3-cycles', {
+    x:CX, y:CY+20,
+    fill:'#cc2244','font-family':'Georgia,serif',
+    'font-size':'9','font-style':'italic',
+    'text-anchor':'middle', opacity:'0.8'
+  }, svg);
+  txt('(off the real line)', {
+    x:CX, y:CY+31,
+    fill:'#cc2244','font-family':'Georgia,serif',
+    'font-size':'9','font-style':'italic',
+    'text-anchor':'middle', opacity:'0.8'
+  }, svg);
+
+  // Legend
+  const legY = CY + R + 26;
+  const items = [
+    ['id',    'Identity  x → x',          '(order 1)'],
+    ['comp',  'Complement  x → 1−x',       '(order 2)'],
+    ['recip', 'Reciprocal  x → 1/x',       '(order 2)'],
+    ['third', 'Third  x → x/(x−1)',        '(order 2)'],
+    ['reach', 'Reach  x → 1/(1−x)',        '(order 3)'],
+    ['turn',  'Turn  x → (x−1)/x',         '(order 3)'],
+  ];
+  items.forEach(([key, label, order], i) => {
+    const col  = Math.floor(i / 2);
+    const row  = i % 2;
+    const lx   = CX - 310 + col * 215;
+    const ly   = legY + row * 17;
+    el('rect', {x:lx,y:ly-8,width:14,height:9,fill:COL[key],'rx':'2'}, svg);
+    txt(label, {
+      x:lx+18, y:ly,
+      fill:'#3a3530','font-family':'Georgia,serif','font-size':'10'
+    }, svg);
+    txt(order, {
+      x:lx+18+ctx_width(label), y:ly,
+      fill:'#888','font-family':'Georgia,serif','font-size':'9',
+      'font-style':'italic'
+    }, svg);
+  });
+
+  el('g', {id:'g-active'}, svg);
+}
+
+// Approximate text width for legend spacing
+function ctx_width(s) { return s.length * 6.1; }
+
+// ── Curved arrow helper ──
+// Control point pulled toward or away from center
+function curvedArrow(g, x1, y1, x2, y2, col, key) {
+  const is3 = (key === 'reach' || key === 'turn');
+
+  // Midpoint
+  const mx = (x1+x2)/2, my = (y1+y2)/2;
+  // Vector from center to midpoint
+  const dcx = mx-CX, dcy = my-CY;
+  const dl  = Math.sqrt(dcx*dcx+dcy*dcy) || 1;
+
+  let cpx, cpy;
+  if (is3) {
+    // Pull inward: control point toward center
+    const pull = 0.65;
+    cpx = mx - dcx/dl * R * pull;
+    cpy = my - dcy/dl * R * pull;
+  } else {
+    // Push outward: control point away from center
+    const push = 0.38;
+    cpx = mx + dcx/dl * R * push;
+    cpy = my + dcy/dl * R * push;
+  }
+
+  el('path', {
+    d:`M${x1.toFixed(1)},${y1.toFixed(1)} Q${cpx.toFixed(1)},${cpy.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}`,
+    fill:'none',
+    stroke: col,
+    'stroke-width': is3 ? '2.4' : '2.0',
+    opacity:'0.88',
+    'marker-end':`url(#arr-${key})`
+  }, g);
+}
+
+// ── Draw active x ──
+let currentX = 1.0;
+
+function fmt(v) {
+  if (!isFinite(v)) return '∞';
+  if (Math.abs(v) > 999) return v > 0 ? '+∞' : '−∞';
+  if (Math.abs(v) < 0.0001 && v !== 0) return v.toExponential(2);
+  return v.toFixed(4);
+}
+
+function drawActive() {
+  const g = document.getElementById('g-active');
+  if (!g) return;
+  g.innerHTML = '';
+
+  const x = currentX;
+  const [px, py] = valToXY(x);
+
+  // x dot
+  el('circle', {cx:px.toFixed(1),cy:py.toFixed(1),r:11,
+    fill:'#1a1814',stroke:'#fdfaf4','stroke-width':'2.5'}, g);
+  txt('x', {x:px.toFixed(1),y:(py+4).toFixed(1),
+    fill:'white','font-family':'Georgia,serif','font-size':'11',
+    'font-weight':'bold','text-anchor':'middle'}, g);
+
+  // Each non-identity transform
+  for (const tr of TRANSFORMS) {
+    if (tr.key === 'id') continue;
+
+    let y;
+    try {
+      y = tr.fn(x);
+      if (isNaN(y)) continue;
+      if (!isFinite(y)) y = Infinity;
+    } catch(e) { continue; }
+
+    const [qx, qy] = valToXY(y);
+
+    // Arrow
+    curvedArrow(g, px, py, qx, qy, tr.col, tr.key);
+
+    // Image dot
+    el('circle', {
+      cx:qx.toFixed(1),cy:qy.toFixed(1),r:7,
+      fill:tr.col,stroke:'#fdfaf4','stroke-width':'1.5'
+    }, g);
+
+    // Value label — place outside circle at image angle
+    const ang  = valToAngle(isFinite(y) ? y : Infinity);
+    const rad2 = ang * Math.PI / 180;
+    const lr   = R + 46;
+    const lx2  = CX + lr * Math.cos(rad2);
+    const ly2  = CY - lr * Math.sin(rad2);
+
+    txt(fmt(y), {
+      x:lx2.toFixed(1), y:(ly2+4).toFixed(1),
+      fill:tr.col,
+      'font-family':'Courier New,monospace',
+      'font-size':'10.5',
+      'text-anchor':'middle',
+      'font-weight':'bold'
+    }, g);
+  }
+
+  // Readout
+  document.getElementById('rv-id').textContent    = fmt(x);
+  document.getElementById('rv-comp').textContent  = fmt(1-x);
+  document.getElementById('rv-recip').textContent = fmt(1/x);
+  document.getElementById('rv-third').textContent = fmt(x/(x-1));
+  document.getElementById('rv-reach').textContent = fmt(1/(1-x));
+  document.getElementById('rv-turn').textContent  = fmt((x-1)/x);
+  document.getElementById('xdisp').textContent    = fmt(x);
+}
+
+// ── Slider: map [-500,500] through tan to cover real line well ──
+function sliderToX(s) {
+  // s in [-500,500]; map to angle in (-π/2, π/2) then take tan
+  const angle = (s / 500) * (Math.PI / 2) * 0.98;
+  return Math.tan(angle);
+}
+
+document.getElementById('xslider').addEventListener('input', function() {
+  currentX = sliderToX(parseFloat(this.value));
+  drawActive();
+});
+
+// ── Touch/mouse on circle: drag to set angle ──
+const wrap = document.getElementById('svgwrap');
+function handleInput(e) {
+  e.preventDefault();
+  const r    = wrap.getBoundingClientRect();
+  const cx   = e.touches ? e.touches[0].clientX : e.clientX;
+  const cy   = e.touches ? e.touches[0].clientY : e.clientY;
+  const svgX = (cx - r.left) / r.width  * VW;
+  const svgY = (cy - r.top)  / r.height * VH;
+  const dx   = svgX - CX, dy = CY - svgY;
+  const deg  = ((Math.atan2(dy, dx) * 180 / Math.PI) + 360) % 360;
+  // Invert: θ = (π − 2·arctan(x)) · 180/π
+  // → arctan(x) = (π − θ·π/180) / 2
+  // → x = tan((π − θ·π/180) / 2)
+  const rad  = deg * Math.PI / 180;
+  const xval = Math.tan((Math.PI - rad) / 2);
+  currentX   = isFinite(xval) ? xval : (deg < 180 ? 1e9 : -1e9);
+  drawActive();
+}
+wrap.addEventListener('touchstart', handleInput, {passive:false});
+wrap.addEventListener('touchmove',  handleInput, {passive:false});
+wrap.addEventListener('mousedown',  handleInput);
+wrap.addEventListener('mousemove',  e => { if (e.buttons) handleInput(e); });
+
+buildBase();
+drawActive();
+
+})();
+</script>
+</body>
+</html>
